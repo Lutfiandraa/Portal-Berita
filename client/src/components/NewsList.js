@@ -21,7 +21,7 @@ const NewsList = () => {
   }, []);
 
   if (articles.length === 0) {
-    return <p className="text-center col-span-full">Memuat berita...</p>;
+    return <p className="text-center col-span-full">Load...</p>;
   }
 
   return (
@@ -34,7 +34,7 @@ const NewsList = () => {
           {article.urlToImage ? (
             <img
               src={article.urlToImage}
-              alt="thumbnail"
+              alt={article.title || 'thumbnail'}
               className="w-full h-48 object-cover"
             />
           ) : (
@@ -44,8 +44,15 @@ const NewsList = () => {
           )}
           <div className="p-4 flex flex-col justify-between flex-grow">
             <div>
-              <h3 className="font-semibold text-lg mb-1 line-clamp-2">{article.title}</h3>
-              <p className="text-sm text-gray-600 line-clamp-3">{article.description || 'Tidak ada deskripsi.'}</p>
+              <h3 className="font-semibold text-lg mb-1 line-clamp-2">
+                {article.title || 'No title available'}
+              </h3>
+              <p className="text-sm text-gray-600 line-clamp-3">
+                {article.description || 'Tidak ada deskripsi.'}
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                {article.publishedAt ? new Date(article.publishedAt).toLocaleString() : 'Tanggal tidak tersedia'}
+              </p>
             </div>
             <div className="mt-4">
               <a

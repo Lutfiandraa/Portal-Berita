@@ -1,17 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
-import arybakri from './assets/arybakri.png';
-// import logo from './assets/logo.png'; // Tidak perlu logo & navbar di sini
-// import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
-// import { Link } from 'react-router-dom';
 
 function Trending() {
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await fetch(
+          'https://newsapi.org/v2/top-headlines?country=us&apiKey=01d3df6599db4d749cf23b47b150c8ce'
+        );
+        const data = await response.json();
+        if (data.status === 'ok') {
+          setArticles(data.articles.slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Gagal mengambil data berita:', error);
+      }
+    };
+
+    fetchNews();
+
+    const intervalId = setInterval(fetchNews, 300000); // Refresh 5 menit sekali
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const mainArticle = articles[0]; // Artikel utama
+
   return (
     <div className="App bg-gray-50 min-h-screen text-gray-800 font-sans">
-      {/* Content */}
       <div className="container mx-auto px-6 my-10">
-        {/* background */}
+        {/* Header */}
         <div
           className="w-full rounded-lg mb-10 flex items-center justify-center"
           style={{
@@ -23,42 +43,49 @@ function Trending() {
         </div>
 
         {/* Main Article */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <img
-            src={arybakri}
-            alt="Trending"
-            className="w-full h-72 object-cover rounded-lg mb-6"
-          />
-          <p className="text-sm text-gray-500 mb-2">12 hours ago &nbsp;|&nbsp; By winnicode.com &nbsp;|&nbsp; 4min read</p>
-          <p>
-            Kejaksaan Agung memeriksa MJR, nahkoda kapal milik advokat Ariyanto Bakri yang merupakan tersangka kasus dugaan suap dan gratifikasi terkait penanganan perkara di Pengadilan Tindak Pidana Korupsi Jakarta Pusat.
-          </p>
-          <p className="mt-3">
-            MJR diperiksa bersama dua orang lainnya, yaitu AS selaku sopir dari advokat sekaligus tersangka Marcella Santoso, dan LWP selaku Perancang Peraturan Perundang-Undangan Ahli Muda Biro Hukum Kementerian Perdagangan.
-          </p>
-          <p className="mt-3">
-            Kejagung telah menetapkan delapan orang tersangka dalam kasus dugaan suap penanganan perkara di PN Jakarta Pusat terkait kasus vonis lepas ekspor CPO terhadap tiga perusahaan, yakni PT Wilmar Group, PT Permata Hijau Group, dan PT Musim Mas Group.
-          </p>
-        </div>
+        {mainArticle ? (
+          <div className="max-w-4xl mx-auto mb-12">
+            <img
+              src={mainArticle.urlToImage || 'https://via.placeholder.com/800x400?text=No+Image'}
+              alt={mainArticle.title}
+              className="w-full h-72 object-cover rounded-lg mb-6"
+            />
+            <p className="text-sm text-gray-500 mb-2">
+              {new Date(mainArticle.publishedAt).toLocaleString()} &nbsp;|&nbsp; By {mainArticle.source?.name || 'Unknown'} &nbsp;|&nbsp; ~4min read
+            </p>
+            <h2 className="text-2xl font-bold mb-3">{mainArticle.title}</h2>
+            <p>{mainArticle.description || 'No description available.'}</p>
+          </div>
+        ) : (
+          <p className="text-center">Memuat headline utama...</p>
+        )}
 
-        {/* Grid Articles */}
+        {/* Other Articles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {[1,2,3,4].map((item) => (
-            <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden">
+          {articles.slice(1).map((article, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative">
                 <img
-                  src="/path-to-coming-soon-image.jpg"
-                  alt="Coming Soon"
+                  src={article.urlToImage || 'https://via.placeholder.com/400x200?text=No+Image'}
+                  alt={article.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                  <span className="text-pink-300 text-xl italic">coming soon</span>
-                </div>
               </div>
               <div className="p-4">
-                <h3 className="font-semibold mb-2">Coming Soon With News.API</h3>
-                <p className="text-gray-600 mb-4">Coming Soon</p>
-                <p className="text-xs text-gray-400">2 hours ago &nbsp;|&nbsp; By winnicode.com &nbsp;|&nbsp; 4min read</p>
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 hover:underline"
+                >
+                  <h3 className="font-semibold mb-2">{article.title || 'No title available'}</h3>
+                </a>
+                <p className="text-gray-600 mb-4">
+                  {article.description || 'No description available.'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {new Date(article.publishedAt).toLocaleString()} &nbsp;|&nbsp; {article.source?.name || 'Unknown'} &nbsp;|&nbsp; ~4min read
+                </p>
               </div>
             </div>
           ))}
