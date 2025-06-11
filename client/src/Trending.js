@@ -13,7 +13,7 @@ function Trending() {
         );
         const data = await response.json();
         if (data.status === 'ok') {
-          setArticles(data.articles.slice(0, 4));
+          setArticles(data.articles.slice(0, 5)); // ✅ Ambil 5 artikel untuk menampilkan 4 card
         }
       } catch (error) {
         console.error('Gagal mengambil data berita:', error);
