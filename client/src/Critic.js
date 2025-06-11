@@ -11,7 +11,7 @@ const Critic = () => {
         <div className="w-full max-w-3xl bg-white rounded shadow-md">
           {/* Header */}
         <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t text-xl font-bold flex items-center justify-center gap-2">
-        <FaRegComments className="text-white text-3xl" /> {/* <- ikon diperbesar */}
+        <FaRegComments className="text-white text-3xl" />
         Provide Feedback
         </div>
 

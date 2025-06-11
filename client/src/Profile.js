@@ -4,7 +4,7 @@ const Profile = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-md w-full max-w-md">
-        {/* Ganti warna dari bg-purple-900 ke #0E1E32 */}
+        {/* Head */}
         <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t-md">
           <h2 className="text-xl font-semibold">Complete your Profile</h2>
         </div>

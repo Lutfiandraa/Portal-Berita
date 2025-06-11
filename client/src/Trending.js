@@ -13,7 +13,7 @@ function Trending() {
         );
         const data = await response.json();
         if (data.status === 'ok') {
-          setArticles(data.articles.slice(0, 5)); // ✅ Ambil 5 artikel untuk menampilkan 4 card
+          setArticles(data.articles.slice(0, 5));
         }
       } catch (error) {
         console.error('Gagal mengambil data berita:', error);
@@ -22,11 +22,11 @@ function Trending() {
 
     fetchNews();
 
-    const intervalId = setInterval(fetchNews, 300000); // Refresh 5 menit sekali
+    const intervalId = setInterval(fetchNews, 300000);
     return () => clearInterval(intervalId);
   }, []);
 
-  const mainArticle = articles[0]; // Artikel utama
+  const mainArticle = articles[0];
 
   return (
     <div className="App bg-gray-50 min-h-screen text-gray-800 font-sans">
@@ -57,7 +57,7 @@ function Trending() {
             <p>{mainArticle.description || 'No description available.'}</p>
           </div>
         ) : (
-          <p className="text-center">Memuat headline utama...</p>
+          <p className="text-center">Load...</p>
         )}
 
         {/* Other Articles */}

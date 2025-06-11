@@ -26,7 +26,7 @@ const NewsList = ({ article }) => {
             {article.description || 'Tidak ada deskripsi.'}
           </p>
 
-          {/* ✅ Tambahkan source name di sini */}
+          {/* Source */}
           {article.source?.name && (
             <p className="text-xs text-gray-500 mt-2 italic">
               (source: {article.source.name})
