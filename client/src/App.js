@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import './index.css';
 import Trending from './Trending';
@@ -8,9 +8,30 @@ import NewsList from './components/NewsList';
 import logo from './assets/logo.png';
 import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
 import { Link, Routes, Route } from 'react-router-dom';
-import Profile from './Profile'; // ✅ Import Profile
+import Profile from './Profile';
 
 function App() {
+  const [allNews, setAllNews] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(6);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await fetch(
+          'https://newsapi.org/v2/top-headlines?country=us&apiKey=01d3df6599db4d749cf23b47b150c8ce'
+        );
+        const data = await response.json();
+        if (data.status === 'ok') {
+          setAllNews(data.articles);
+        }
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
   return (
     <div className="App bg-gray-50 min-h-screen text-gray-800 font-sans">
       {/* Navbar */}
@@ -30,7 +51,6 @@ function App() {
           </ul>
           {/* Icons */}
           <div className="flex items-center space-x-4">
-            {/* ✅ Ubah icon user menjadi link ke /profile */}
             <Link to="/profile">
               <FaUserCircle className="cursor-pointer hover:text-gray-300 text-2xl" />
             </Link>
@@ -59,21 +79,28 @@ function App() {
 
             {/* News List */}
             <div className="container mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <NewsList />
+              {allNews.slice(0, visibleCount).map((article, index) => (
+                <NewsList key={index} article={article} />
+              ))}
             </div>
 
             {/* View More */}
-            <div className="text-center my-8">
-              <button className="border border-gray-400 px-6 py-2 rounded hover:bg-gray-100">
-                View More
-              </button>
-            </div>
+            {visibleCount < allNews.length && (
+              <div className="text-center my-8">
+                <button
+                  className="border border-gray-400 px-6 py-2 rounded hover:bg-gray-100"
+                  onClick={() => setVisibleCount(prev => prev + 6)}
+                >
+                  View More
+                </button>
+              </div>
+            )}
           </>
         } />
         <Route path="/trending" element={<Trending />} />
         <Route path="/articles" element={<Article />} />
         <Route path="/critics" element={<Critic />} />
-        <Route path="/profile" element={<Profile />} /> {/* ✅ Tambah route ke Profile */}
+        <Route path="/profile" element={<Profile />} />
       </Routes>
 
       {/* Footer */}
