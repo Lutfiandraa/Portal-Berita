@@ -13,6 +13,7 @@ import Profile from './Profile';
 function App() {
   const [allNews, setAllNews] = useState([]);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -31,6 +32,11 @@ function App() {
 
     fetchNews();
   }, []);
+
+  const filteredNews = allNews.filter(article =>
+    article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    article.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="App bg-gray-50 min-h-screen text-gray-800 font-sans">
@@ -69,6 +75,8 @@ function App() {
                 <input
                   type="text"
                   placeholder="Search Breaking News..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="text-gray-800 px-4 py-2 rounded w-1/3"
                 />
                 <div className="text-center flex-1">
@@ -79,13 +87,13 @@ function App() {
 
             {/* News List */}
             <div className="container mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {allNews.slice(0, visibleCount).map((article, index) => (
+              {filteredNews.slice(0, visibleCount).map((article, index) => (
                 <NewsList key={index} article={article} />
               ))}
             </div>
 
             {/* View More */}
-            {visibleCount < allNews.length && (
+            {visibleCount < filteredNews.length && (
               <div className="text-center my-8">
                 <button
                   className="border border-gray-400 px-6 py-2 rounded hover:bg-gray-100"
