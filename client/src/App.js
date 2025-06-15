@@ -46,7 +46,7 @@ function App() {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <img src={logo} alt="Logo" className="w-8 h-8" />
-            <span className="text-xl font-bold">Winnicode News</span>
+            <span className="text-xl font-bold">Winnicode New's</span>
           </div>
           {/* Menu */}
           <ul className="flex space-x-8 font-medium text-sm md:text-base">
@@ -112,8 +112,17 @@ function App() {
       </Routes>
 
       {/* Footer */}
-      <footer className="text-white text-center py-4 bg-[#0E1E32]">
-        <p>© 2025 Winnicode Garuda Teknologi</p>
+      <footer className="bg-[#0E1E32] text-center py-6">
+        <div className="flex flex-col items-center justify-center">
+          <img
+            src={logo}
+            alt="Winnicode Logo"
+            className="w-16 h-auto mb-2"
+          />
+          <p className="text-gray-400 text-sm">
+            copyright © 2025 | Winnicode New's
+          </p>
+        </div>
       </footer>
     </div>
   );

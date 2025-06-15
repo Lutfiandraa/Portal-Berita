@@ -15,7 +15,7 @@ function Article() {
         const response = await fetch(BASE_URL);
         const data = await response.json();
         if (data.articles && data.articles.length > 0) {
-          setArticles(data.articles.slice(0, 5)); //5 Artikel atas
+          setArticles(data.articles.slice(0, 15)); // ✅ 15 artikel
         }
       } catch (error) {
         console.error('Gagal mengambil artikel:', error);
