@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
+import { motion } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 
 function Trending() {
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true); //State loading
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -17,28 +20,32 @@ function Trending() {
         }
       } catch (error) {
         console.error('Gagal mengambil data berita:', error);
+      } finally {
+        setTimeout(() => setLoading(false), 1000); //Delay Supaya Halus
       }
     };
 
     fetchNews();
-
     const intervalId = setInterval(fetchNews, 300000);
     return () => clearInterval(intervalId);
   }, []);
 
   const mainArticle = articles[0];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E1E32] text-white">
+        <ClipLoader color="#ffffff" size={40} />
+        <p className="mt-3 text-sm">Loading trending...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="App bg-gray-50 min-h-screen text-gray-800 font-sans">
+    <div className="App min-h-screen font-sans bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text">
       <div className="container mx-auto px-6 my-10">
         {/* Header */}
-        <div
-          className="w-full rounded-lg mb-10 flex items-center justify-center"
-          style={{
-            backgroundColor: '#0E1E32',
-            minHeight: '120px'
-          }}
-        >
+        <div className="w-full rounded-lg mb-10 flex items-center justify-center bg-[#0E1E32] dark:bg-[#1A2A45]" style={{ minHeight: '120px' }}>
           <h1 className="text-4xl font-semibold text-center text-white m-0">Trending Today</h1>
         </div>
 
@@ -57,13 +64,18 @@ function Trending() {
             <p>{mainArticle.description || 'No description available.'}</p>
           </div>
         ) : (
-          <p className="text-center">Load...</p>
+          <p className="text-center">What's Trending?</p>
         )}
 
         {/* Other Articles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {articles.slice(1).map((article, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              className="bg-white dark:bg-[#1A2A45] dark:text-white rounded-lg shadow-md overflow-hidden"
+            >
               <div className="relative">
                 <img
                   src={article.urlToImage || 'https://via.placeholder.com/400x200?text=No+Image'}
@@ -76,18 +88,18 @@ function Trending() {
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-700 hover:underline"
+                  className="text-blue-700 dark:text-blue-400 hover:underline"
                 >
                   <h3 className="font-semibold mb-2">{article.title || 'No title available'}</h3>
                 </a>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
                   {article.description || 'No description available.'}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 dark:text-gray-300">
                   {new Date(article.publishedAt).toLocaleString()} &nbsp;|&nbsp; {article.source?.name || 'Unknown'} &nbsp;|&nbsp; ~4min read
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
