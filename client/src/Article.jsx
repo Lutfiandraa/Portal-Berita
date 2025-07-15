@@ -3,7 +3,7 @@ import './App.css';
 import './index.css';
 import { motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
-import logo from './assets/logo.png'; // sesuaikan path jika perlu
+import logo from './assets/logo.png';
 
 const API_KEY = '01d3df6599db4d749cf23b47b150c8ce';
 const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${API_KEY}`;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
-import logo from '../assets/logo.png'; // pastikan path sesuai
+import logo from '../assets/logo.png';
 
 const API_KEY = '01d3df6599db4d749cf23b47b150c8ce';
 const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${API_KEY}`;
@@ -53,9 +53,9 @@ const NewsList = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-700 dark:text-white bg-white dark:bg-[#0E1E32]">
+      <div className="min-h-screen flex flex-col items-center justify-center text-white bg-[#0E1E32]">
         <img src={logo} alt="Logo" className="w-14 h-14 mb-4 animate-pulse" />
-        <ClipLoader color="#0E1E32" size={40} />
+        <ClipLoader color="#ffffff" size={40} />
         <p className="mt-2 text-sm">Loading News...</p>
       </div>
     );

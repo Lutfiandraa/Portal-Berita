@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCheckCircle } from 'react-icons/fa'; // ✅ Tambahkan ini
+import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Profile = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +10,7 @@ const Profile = () => {
   });
 
   const [profileComplete, setProfileComplete] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('userEmail');
@@ -67,8 +68,8 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen pt-24 bg-gray-100">
-      <div className="bg-white shadow-lg rounded-md w-full max-w-md mb-16">
+    <div className="min-h-screen bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text flex items-center justify-center pt-24">
+      <div className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16">
         <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t-md">
           <h2 className="text-xl font-semibold">
             {profileComplete ? 'Profile Completed!' : 'Complete your Profile'}
@@ -82,34 +83,45 @@ const Profile = () => {
             </p>
           ) : (
             <form className="w-full px-6" onSubmit={handleSubmit}>
-              <label className="block text-sm font-semibold mb-1">E-Mail</label>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">E-Mail</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="E-Mail"
-                className="w-full mb-3 px-4 py-2 border rounded text-xs"
+                className="w-full mb-3 px-4 py-2 border rounded text-xs 
+                  bg-white text-gray-800 placeholder-gray-500"
               />
 
-              <label className="block text-sm font-semibold mb-1">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-                className="w-full mb-3 px-4 py-2 border rounded text-xs"
-              />
+              <label className="block text-sm font-semibold mb-1 text-gray-700">Password</label>
+              <div className="relative mb-3">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  className="w-full px-4 py-2 border rounded text-xs 
+                    bg-white text-gray-800 placeholder-gray-500 pr-10"
+                />
+                <span
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-600 cursor-pointer"
+                >
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
+                </span>
+              </div>
 
-              <label className="block text-sm font-semibold mb-1">Name</label>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your Name"
-                className="w-full mb-6 px-4 py-2 border rounded text-xs"
+                className="w-full mb-6 px-4 py-2 border rounded text-xs 
+                  bg-white text-gray-800 placeholder-gray-500"
               />
 
               <button
@@ -119,7 +131,6 @@ const Profile = () => {
                 Submit
               </button>
 
-              {/*Button Login */}
               <Link to="/login" className="block text-center text-sm text-blue-600 hover:underline font-medium">
                 Already have an account? Login here
               </Link>

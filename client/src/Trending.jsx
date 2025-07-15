@@ -6,7 +6,7 @@ import { ClipLoader } from 'react-spinners';
 
 function Trending() {
   const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true); //State loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -21,7 +21,7 @@ function Trending() {
       } catch (error) {
         console.error('Gagal mengambil data berita:', error);
       } finally {
-        setTimeout(() => setLoading(false), 1000); //Delay Supaya Halus
+        setTimeout(() => setLoading(false), 1000);
       }
     };
 
@@ -36,7 +36,7 @@ function Trending() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E1E32] text-white">
         <ClipLoader color="#ffffff" size={40} />
-        <p className="mt-3 text-sm">Loading trending...</p>
+        <p className="mt-3 text-sm">Loading Trending...</p>
       </div>
     );
   }
