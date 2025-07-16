@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-// 1. Buat Context
+
 const ThemeContext = createContext();
 
-// 2. Provider
+//Provider
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    // Cek localStorage dulu
+
     const storedTheme = localStorage.getItem('theme');
     return storedTheme || 'light';
   });
 
-  // 3. Update class 'dark' di <html>
+  //Theme Dark Mode
   useEffect(() => {
     const root = window.document.documentElement;
     if (theme === 'dark') {
@@ -32,5 +32,5 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-// 4. Hook untuk akses theme
+//Hook Theme
 export const useTheme = () => useContext(ThemeContext);

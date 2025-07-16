@@ -48,7 +48,7 @@ function App() {
     return (
       <div
         className="min-h-screen flex flex-col items-center justify-center text-white"
-        style={{ backgroundColor: '#0E1E32' }} // 💡 Inilah bagian yang digaransi navy
+        style={{ backgroundColor: '#0E1E32' }}
       >
         <img src={logo} alt="Logo" className="w-16 h-16 mb-4 animate-pulse" />
         <ClipLoader color="#ffffff" size={40} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Profile = () => {
@@ -11,6 +11,7 @@ const Profile = () => {
 
   const [profileComplete, setProfileComplete] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('userEmail');
@@ -58,6 +59,7 @@ const Profile = () => {
         localStorage.setItem('userEmail', formData.email);
         setProfileComplete(true);
         alert('Successfully saved your profile!');
+        navigate('/login'); //Redirect ke halaman Login
       } else {
         alert(result.error || 'Terjadi kesalahan.');
       }
@@ -90,8 +92,7 @@ const Profile = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="E-Mail"
-                className="w-full mb-3 px-4 py-2 border rounded text-xs 
-                  bg-white text-gray-800 placeholder-gray-500"
+                className="w-full mb-3 px-4 py-2 border rounded text-xs bg-white text-gray-800 placeholder-gray-500"
               />
 
               <label className="block text-sm font-semibold mb-1 text-gray-700">Password</label>
@@ -102,8 +103,7 @@ const Profile = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Password"
-                  className="w-full px-4 py-2 border rounded text-xs 
-                    bg-white text-gray-800 placeholder-gray-500 pr-10"
+                  className="w-full px-4 py-2 border rounded text-xs bg-white text-gray-800 placeholder-gray-500 pr-10"
                 />
                 <span
                   onClick={() => setShowPassword((prev) => !prev)}
@@ -120,8 +120,7 @@ const Profile = () => {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your Name"
-                className="w-full mb-6 px-4 py-2 border rounded text-xs 
-                  bg-white text-gray-800 placeholder-gray-500"
+                className="w-full mb-6 px-4 py-2 border rounded text-xs bg-white text-gray-800 placeholder-gray-500"
               />
 
               <button

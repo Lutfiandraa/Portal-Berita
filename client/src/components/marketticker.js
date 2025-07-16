@@ -38,7 +38,7 @@ const MarketTicker = () => {
             change: isNaN(change) ? 0 : change,
             percent_change: isNaN(percent) ? 0 : percent,
           };
-        }).filter(Boolean); // Filter hasil null
+        }).filter(Boolean);
 
         setMarketData(parsedData);
       } catch (error) {

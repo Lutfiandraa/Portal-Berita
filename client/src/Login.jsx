@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FiRefreshCcw } from 'react-icons/fi';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,11 +11,10 @@ const Login = () => {
   const [captchaSVG, setCaptchaSVG] = useState('');
   const [userCaptcha, setUserCaptcha] = useState('');
 
-  // Ambil captcha dari backend
   const fetchCaptcha = async () => {
     try {
       const res = await fetch('http://localhost:4000/captcha', {
-        credentials: 'include', // penting untuk session
+        credentials: 'include',
       });
       const svg = await res.text();
       setCaptchaSVG(svg);
@@ -38,7 +38,6 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      // Validasi captcha dulu ke backend
       const verify = await fetch('http://localhost:4000/verify-captcha', {
         method: 'POST',
         credentials: 'include',
@@ -53,7 +52,6 @@ const Login = () => {
         return;
       }
 
-      // Jika captcha valid, lanjut login
       const res = await fetch(`http://localhost:4000/profile?email=${formData.email}`);
       const user = await res.json();
 
@@ -118,10 +116,10 @@ const Login = () => {
             <button
               type="button"
               onClick={fetchCaptcha}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-blue-600 hover:text-blue-800 text-lg p-1 rounded-full"
               title="Refresh Captcha"
             >
-              🔄
+              <FiRefreshCcw />
             </button>
           </div>
           <input
@@ -144,7 +142,7 @@ const Login = () => {
             to="/profile"
             className="block text-center text-sm text-blue-600 hover:underline font-medium"
           >
-            Don’t have a profile? Complete it here
+            New here? Get Started!
           </Link>
         </form>
       </div>
