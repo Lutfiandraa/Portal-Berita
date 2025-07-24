@@ -1,18 +1,28 @@
-require('dotenv').config(); // membaca file .env
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const session = require('express-session');
+const svgCaptcha = require('svg-captcha');
 
 const app = express();
 const PORT = 4000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+}));
 app.use(express.json());
+app.use(session({
+  secret: 'captcha-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
 
 // Koneksi ke PostgreSQL
-const pool = new Pool(); // otomatis baca dari .env
+const pool = new Pool();
 
 pool.connect()
   .then(() => console.log('✅ Terhubung ke PostgreSQL'))
@@ -21,12 +31,36 @@ pool.connect()
     process.exit(1);
   });
 
-// ✅ Route: Tes koneksi
+//Tes koneksi
 app.get('/', (req, res) => {
   res.send('Halo dari backend Express.js!');
 });
 
-// ✅ Route: Ambil profil berdasarkan email ATAU name
+//CAPTCHA generator
+app.get('/captcha', (req, res) => {
+  const captcha = svgCaptcha.create({
+    size: 5,
+    noise: 3,
+    color: true,
+    background: '#eef',
+  });
+
+  req.session.captcha = captcha.text;
+  res.type('svg');
+  res.status(200).send(captcha.data);
+});
+
+//Verifikasi CAPTCHA dari frontend
+app.post('/verify-captcha', (req, res) => {
+  const { captcha } = req.body;
+  if (captcha === req.session.captcha) {
+    return res.json({ success: true });
+  } else {
+    return res.status(400).json({ error: 'Captcha salah' });
+  }
+});
+
+//Ambil profil berdasarkan email ATAU name
 app.get('/profile', async (req, res) => {
   const { email, name } = req.query;
 
@@ -50,7 +84,7 @@ app.get('/profile', async (req, res) => {
   }
 });
 
-// ✅ Route: Simpan profil baru
+//Simpan profil baru
 app.post('/profile', async (req, res) => {
   const { email, password, name } = req.body;
 
@@ -80,7 +114,7 @@ app.post('/profile', async (req, res) => {
   }
 });
 
-// ✅ Route: Simpan kritik berdasarkan nama user dan isi content
+//Simpan kritik berdasarkan nama user dan isi content
 app.post('/critics', async (req, res) => {
   const { name, content } = req.body;
 
@@ -113,13 +147,13 @@ app.post('/critics', async (req, res) => {
   }
 });
 
-// ✅ Route: Logout sederhana
+//Logout sederhana
 app.post('/logout', (req, res) => {
   console.log('👋 User logout:', new Date().toISOString());
   res.status(200).json({ message: 'Logout berhasil (handled di frontend)' });
 });
 
-// Jalankan server
+//Jalankan server
 app.listen(PORT, () => {
   console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
