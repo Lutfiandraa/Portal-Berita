@@ -9,21 +9,11 @@ const svgCaptcha = require('svg-captcha');
 const app = express();
 const PORT = 4000;
 
-// Middleware
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true,
-}));
-app.use(express.json());
-app.use(session({
-  secret: 'captcha-secret-key',
-  resave: false,
-  saveUninitialized: true,
-}));
+// ✅ RUTE USER STATS
+const userStatsRoute = require('./routes/userStats');
 
-// Koneksi ke PostgreSQL
+// ✅ Koneksi ke PostgreSQL
 const pool = new Pool();
-
 pool.connect()
   .then(() => console.log('✅ Terhubung ke PostgreSQL'))
   .catch(err => {
@@ -31,12 +21,41 @@ pool.connect()
     process.exit(1);
   });
 
-//Tes koneksi
+// ✅ Middleware
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+}));
+
+app.use(express.json());
+app.use(session({
+  secret: 'captcha-secret-key',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+// ✅ GET SEMUA USER (untuk ManageUser.jsx)
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT userid, email, name, status, last_active FROM users ORDER BY userid ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Gagal ambil data user:', error);
+    res.status(500).json({ message: 'Gagal ambil data user' });
+  }
+});
+
+// ✅ RUTE STATISTIK USER
+app.use('/api/user-stats', userStatsRoute);
+
+// Root Endpoint
 app.get('/', (req, res) => {
   res.send('Halo dari backend Express.js!');
 });
 
-//CAPTCHA generator
+// ✅ CAPTCHA
 app.get('/captcha', (req, res) => {
   const captcha = svgCaptcha.create({
     size: 5,
@@ -50,7 +69,6 @@ app.get('/captcha', (req, res) => {
   res.status(200).send(captcha.data);
 });
 
-//Verifikasi CAPTCHA dari frontend
 app.post('/verify-captcha', (req, res) => {
   const { captcha } = req.body;
   if (captcha === req.session.captcha) {
@@ -60,7 +78,7 @@ app.post('/verify-captcha', (req, res) => {
   }
 });
 
-//Ambil profil berdasarkan email ATAU name
+// ✅ GET PROFILE
 app.get('/profile', async (req, res) => {
   const { email, name } = req.query;
 
@@ -84,20 +102,21 @@ app.get('/profile', async (req, res) => {
   }
 });
 
-//Simpan profil baru
+// ✅ POST PROFILE (REGISTER)
 app.post('/profile', async (req, res) => {
   const { email, password, name } = req.body;
 
   console.log('📥 Data diterima dari frontend:', req.body);
 
   if (!email || !password || !name) {
-    console.warn('⚠️ Ada field kosong');
     return res.status(400).json({ error: 'Semua field wajib diisi' });
   }
 
   try {
     const result = await pool.query(
-      'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING *',
+      `INSERT INTO users (email, password, name, status, last_active, created_at)
+       VALUES ($1, $2, $3, 'aktif', NOW(), CURRENT_TIMESTAMP)
+       RETURNING *`,
       [email, password, name]
     );
 
@@ -109,16 +128,14 @@ app.post('/profile', async (req, res) => {
       return res.status(409).json({ error: 'Email sudah digunakan' });
     }
 
-    console.error('❌ Gagal menyimpan profil ke DB:', err);
+    console.error('❌ Gagal simpan profil ke DB:', err);
     res.status(500).json({ error: 'Terjadi kesalahan pada server' });
   }
 });
 
-//Simpan kritik berdasarkan nama user dan isi content
+// ✅ POST CRITIC
 app.post('/critics', async (req, res) => {
   const { name, content } = req.body;
-
-  console.log('🗣️ Kritik masuk dari user:', name, '| Isi:', content);
 
   if (!name || !content) {
     return res.status(400).json({ error: 'Nama dan komentar wajib diisi' });
@@ -138,8 +155,6 @@ app.post('/critics', async (req, res) => {
       [userid, content]
     );
 
-    console.log('✅ Kritik berhasil disimpan:', result.rows[0]);
-
     res.status(201).json({ message: 'Kritik berhasil disimpan', data: result.rows[0] });
   } catch (err) {
     console.error('❌ Gagal simpan kritik:', err);
@@ -147,13 +162,13 @@ app.post('/critics', async (req, res) => {
   }
 });
 
-//Logout sederhana
+// ✅ LOGOUT
 app.post('/logout', (req, res) => {
   console.log('👋 User logout:', new Date().toISOString());
   res.status(200).json({ message: 'Logout berhasil (handled di frontend)' });
 });
 
-//Jalankan server
+// ✅ LISTEN SERVER
 app.listen(PORT, () => {
   console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
