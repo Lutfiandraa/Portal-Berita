@@ -46,19 +46,28 @@ function App() {
 
   if (initialLoading) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center text-white"
-        style={{ backgroundColor: '#0E1E32' }}
-      >
-        <img src={logo} alt="Logo" className="w-16 h-16 mb-4 animate-pulse" />
-        <ClipLoader color="#ffffff" size={40} />
-        <p className="mt-2 text-sm">Loading...</p>
+      <div className="min-h-screen flex flex-col justify-between bg-[#0E1E32] text-white">
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <img src={logo} alt="Logo" className="w-16 h-16 mb-4 animate-pulse mx-auto" />
+            <ClipLoader color="#ffffff" size={40} />
+            <p className="mt-2 text-sm">Loading News...</p>
+          </div>
+        </div>
+        <footer className="bg-[#0E1E32] text-center py-4">
+          <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
+            <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
+            <p className="text-gray-400 text-sm">
+              copyright © 2025 | Winnicode New's
+            </p>
+          </div>
+        </footer>
       </div>
     );
   }
 
   return (
-    <div className="App min-h-screen font-sans bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text">
+    <div className="App min-h-screen flex flex-col justify-between font-sans bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text">
       <nav className="shadow-md py-3 sticky top-0 z-50 bg-[#0E1E32]">
         <div className="container mx-auto flex justify-between items-center px-6 text-white">
           <div className="flex items-center space-x-2">
@@ -88,16 +97,18 @@ function App() {
 
       {showTicker && <MarketTicker />}
 
-      <Routes>
-        <Route path="/" element={<NewsList />} />
-        <Route path="/trending" element={<Trending />} />
-        <Route path="/articles" element={<Article />} />
-        <Route path="/critics" element={<Critic />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<NewsList />} />
+          <Route path="/trending" element={<Trending />} />
+          <Route path="/articles" element={<Article />} />
+          <Route path="/critics" element={<Critic />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </main>
 
-      <footer className="bg-[#0E1E32] text-center py-4 mt-4">
+      <footer className="bg-[#0E1E32] text-center py-4">
         <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
           <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
           <p className="text-gray-400 text-sm">

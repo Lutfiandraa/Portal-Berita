@@ -16,6 +16,19 @@ const Profile = () => {
   useEffect(() => {
     const savedEmail = localStorage.getItem('userEmail');
     if (savedEmail) {
+      // 🔍 Cek status aktif/tidak
+      fetch(`http://localhost:4000/auth/status?email=${savedEmail}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === 'nonaktif') {
+            alert('❌ Akun Anda telah dinonaktifkan oleh admin.');
+            localStorage.removeItem('userEmail');
+            navigate('/login');
+          }
+        })
+        .catch((err) => console.error('❌ Error cek status:', err));
+
+      // 🔍 Ambil profil
       fetch(`http://localhost:4000/profile?email=${savedEmail}`)
         .then((res) => res.json())
         .then((data) => {
@@ -30,7 +43,7 @@ const Profile = () => {
         })
         .catch((err) => console.error('❌ Error fetch profil:', err));
     }
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -59,7 +72,7 @@ const Profile = () => {
         localStorage.setItem('userEmail', formData.email);
         setProfileComplete(true);
         alert('Successfully saved your profile!');
-        navigate('/login'); //Redirect ke halaman Login
+        navigate('/login');
       } else {
         alert(result.error || 'Terjadi kesalahan.');
       }

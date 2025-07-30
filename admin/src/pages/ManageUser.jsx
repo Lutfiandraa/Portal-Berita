@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaTrashAlt, FaUser, FaComments, FaChartBar } from 'react-icons/fa';
+import { FaUser, FaComments, FaChartBar } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 
 export default function ManageUser() {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const navigate = useNavigate();
 
@@ -16,7 +18,6 @@ export default function ManageUser() {
       return;
     }
 
-    // ✅ Fetch data dari backend
     fetch('http://localhost:4000/api/users')
       .then(res => res.json())
       .then(data => {
@@ -28,6 +29,7 @@ export default function ManageUser() {
           lastActive: new Date(user.last_active).toLocaleString()
         }));
         setUsers(formatted);
+        setFilteredUsers(formatted);
       })
       .catch(err => {
         console.error('❌ Gagal ambil data user:', err);
@@ -35,41 +37,66 @@ export default function ManageUser() {
       });
   }, [navigate]);
 
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = users.filter(user =>
+      user.name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query)
+    );
+    setFilteredUsers(filtered);
+  }, [searchQuery, users]);
+
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    const updatedUsers = users.map(user =>
-      user.id === id ? { ...user, status: newStatus } : user
-    );
-    setUsers(updatedUsers);
-    setOpenDropdownId(null);
-  };
+  const handleStatusChange = async (id, newStatus) => {
+    const endpoint =
+      newStatus === 'Online'
+        ? `http://localhost:4000/api/users/${id}/activate`
+        : `http://localhost:4000/api/users/${id}/deactivate`;
 
-  const handleDeleteUser = (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus user ini?')) {
-      const updatedUsers = users.filter(user => user.id !== id);
+    try {
+      const res = await fetch(endpoint, {
+        method: 'PATCH',
+      });
+
+      if (!res.ok) throw new Error('Gagal update status');
+
+      const updatedUsers = users.map(user =>
+        user.id === id ? { ...user, status: newStatus } : user
+      );
       setUsers(updatedUsers);
+      setOpenDropdownId(null);
+    } catch (err) {
+      console.error('❌ Gagal ubah status:', err);
+      alert('Gagal mengubah status user.');
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminEmail');
+    alert('✅ Logout berhasil');
+    navigate('/admin/login');
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <aside className="w-1/6 bg-white p-6 border-r flex flex-col justify-between">
+    <div className="flex min-h-screen bg-gray-100 relative">
+      {/* Sidebar */}
+      <aside className="fixed top-6 left-6 z-50 w-60 bg-[#0E1E32] text-white rounded-2xl shadow-xl p-6 flex flex-col justify-between h-[90vh]">
         <div>
           <div
-            className="text-purple-700 font-semibold text-lg mb-6 cursor-pointer flex items-center gap-2"
+            className="text-white font-semibold text-lg mb-6 cursor-pointer flex items-center gap-2 hover:text-purple-300"
             onClick={() => navigate('/admin/dashboard')}
           >
             <FaChartBar /> Dashboard
           </div>
-          <nav className="space-y-4 text-gray-700">
-            <div className="hover:text-purple-600 cursor-pointer font-semibold flex items-center gap-2">
+          <nav className="space-y-4 text-gray-300">
+            <div className="hover:text-white cursor-pointer flex items-center gap-2 font-semibold">
               <FaUser /> Users
             </div>
             <div
-              className="hover:text-purple-600 cursor-pointer flex items-center gap-2"
+              className="hover:text-white cursor-pointer flex items-center gap-2"
               onClick={() => navigate('/admin/manage-critics')}
             >
               <FaComments /> Critic’s
@@ -77,25 +104,24 @@ export default function ManageUser() {
           </nav>
         </div>
         <button
-          onClick={() => {
-            localStorage.removeItem('adminEmail');
-            alert('✅ Logout berhasil');
-            navigate('/admin/login');
-          }}
-          className="text-sm text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-10"
+          onClick={handleLogout}
+          className="text-sm text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded"
         >
           Logout
         </button>
       </aside>
 
-      <main className="flex-1 bg-gray-50 p-10 rounded-tr-3xl">
+      {/* Main Content */}
+      <main className="ml-72 flex-1 bg-gray-50 p-10 rounded-tr-3xl">
         <h2 className="text-2xl font-semibold mb-6">Manage Users</h2>
 
         <div className="mb-6">
           <input
             type="text"
-            placeholder="Search Name"
+            placeholder="Search Name or Email"
             className="w-1/3 px-4 py-2 rounded-full border focus:outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -112,7 +138,7 @@ export default function ManageUser() {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {filteredUsers.map(user => (
                 <tr key={user.id} className="border-t text-sm hover:bg-gray-50">
                   <td className="p-4">{user.id}</td>
                   <td className="p-4 font-semibold">{user.email}</td>
@@ -128,41 +154,35 @@ export default function ManageUser() {
                   </td>
                   <td className="p-4">{user.lastActive}</td>
                   <td className="p-4">
-                    <div className="flex items-center gap-2 relative">
-                      <div className="relative w-[110px]">
-                        <button
-                          onClick={() => toggleDropdown(user.id)}
-                          className="border border-blue-500 text-blue-600 px-3 py-1 text-sm rounded-md hover:bg-blue-50 w-full flex items-center justify-between"
-                        >
-                          Action <FiChevronDown />
-                        </button>
-                        {openDropdownId === user.id && (
-                          <div className="absolute z-10 mt-1 w-full bg-white shadow-md border rounded-md right-0">
-                            <div
-                              onClick={() =>
-                                handleStatusChange(
-                                  user.id,
-                                  user.status === 'Online' ? 'Offline' : 'Online'
-                                )
-                              }
-                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                            >
-                              {user.status === 'Online' ? 'Deactivate' : 'Activate'}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                    <div className="relative w-[110px]">
                       <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-500 hover:text-red-700 text-lg"
+                        onClick={() => toggleDropdown(user.id)}
+                        className="border border-blue-500 text-blue-600 px-3 py-1 text-sm rounded-md hover:bg-blue-50 w-full flex items-center justify-between"
                       >
-                        <FaTrashAlt />
+                        Action <FiChevronDown />
                       </button>
+                      {openDropdownId === user.id && (
+                        <div className="absolute z-10 mt-1 w-full bg-white shadow-md border rounded-md right-0">
+                          <div
+                            onClick={() =>
+                              handleStatusChange(
+                                user.id,
+                                user.status === 'Online' ? 'Offline' : 'Online'
+                              )
+                            }
+                            className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm font-medium ${
+                              user.status === 'Online' ? 'text-red-600' : 'text-green-600'
+                            }`}
+                          >
+                            {user.status === 'Online' ? 'Deactivate' : 'Activate'}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {filteredUsers.length === 0 && (
                 <tr>
                   <td colSpan="6" className="text-center py-6 text-gray-400">
                     No users found.

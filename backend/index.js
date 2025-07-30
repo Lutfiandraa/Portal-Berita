@@ -5,6 +5,7 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const session = require('express-session');
 const svgCaptcha = require('svg-captcha');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 4000;
@@ -23,10 +24,9 @@ pool.connect()
 
 // ✅ Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'],
+  origin: ['http://localhost:4000', 'http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
 }));
-
 app.use(express.json());
 app.use(session({
   secret: 'captcha-secret-key',
@@ -34,7 +34,7 @@ app.use(session({
   saveUninitialized: true,
 }));
 
-// ✅ GET SEMUA USER (untuk ManageUser.jsx)
+// ✅ GET SEMUA USER
 app.get('/api/users', async (req, res) => {
   try {
     const result = await pool.query(
@@ -44,6 +44,77 @@ app.get('/api/users', async (req, res) => {
   } catch (error) {
     console.error('❌ Gagal ambil data user:', error);
     res.status(500).json({ message: 'Gagal ambil data user' });
+  }
+});
+
+// ✅ Activate user
+app.patch('/api/users/:id/activate', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE users SET status = 'aktif' WHERE userid = $1 RETURNING *`,
+      [id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ message: 'User activated successfully', user: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to activate user', error });
+  }
+});
+
+// ✅ PATCH: Nonaktifkan user berdasarkan ID
+app.patch('/api/users/:id/deactivate', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `UPDATE users SET status = 'nonaktif' WHERE userid = $1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    res.status(200).json({ message: 'User berhasil dinonaktifkan', user: result.rows[0] });
+  } catch (error) {
+    console.error('❌ Gagal menonaktifkan user:', error);
+    res.status(500).json({ error: 'Terjadi kesalahan server' });
+  }
+});
+
+// ✅ GET SEMUA CRITICS
+app.get('/api/critics', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        c.criticid AS id,
+        u.email, 
+        c.content AS message, 
+        TO_CHAR(c.datecreated, 'Month DD, YYYY') AS last_active
+      FROM critics c
+      JOIN users u ON c.userid = u.userid
+      ORDER BY c.criticid ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('❌ Gagal ambil data critics:', err);
+    res.status(500).json({ error: 'Gagal ambil data kritik' });
+  }
+});
+
+// ✅ DELETE CRITIC BY ID
+app.delete('/api/critics/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM critics WHERE criticid = $1', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Critic tidak ditemukan' });
+    }
+    res.status(200).json({ message: 'Critic berhasil dihapus' });
+  } catch (err) {
+    console.error('❌ Gagal hapus kritik:', err);
+    res.status(500).json({ error: 'Gagal menghapus kritik' });
   }
 });
 
@@ -162,10 +233,53 @@ app.post('/critics', async (req, res) => {
   }
 });
 
+// ✅ LOGIN ADMIN
+app.post('/login-admin', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: 'Admin tidak ditemukan' });
+    }
+
+    const admin = result.rows[0];
+
+    const valid = await bcrypt.compare(password, admin.password);
+    if (!valid) {
+      return res.status(401).json({ message: 'Password salah' });
+    }
+
+    res.json({ message: 'Login berhasil', admin: { name: admin.name, email: admin.email } });
+  } catch (error) {
+    console.error('Gagal login admin:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ✅ LOGOUT
 app.post('/logout', (req, res) => {
   console.log('👋 User logout:', new Date().toISOString());
   res.status(200).json({ message: 'Logout berhasil (handled di frontend)' });
+});
+
+// ✅ CEK STATUS USER AKTIF/NONAKTIF
+app.get('/auth/status', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email wajib diisi' });
+
+  try {
+    const result = await pool.query('SELECT status FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User tidak ditemukan' });
+    }
+
+    return res.json({ status: result.rows[0].status }); // 'aktif' atau 'nonaktif'
+  } catch (err) {
+    console.error('❌ Gagal cek status user:', err);
+    res.status(500).json({ error: 'Kesalahan server' });
+  }
 });
 
 // ✅ LISTEN SERVER

@@ -1,27 +1,11 @@
-// src/pages/ManageCritic.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTrashAlt, FaChartBar, FaUser, FaComments } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 
-const dummyCritics = [
-  {
-    id: 1,
-    email: 'john@example.com',
-    message: 'Aplikasi sangat membantu. Terima kasih!',
-    last_active: 'July 10, 2025',
-  },
-  {
-    id: 2,
-    email: 'alice@example.com',
-    message: 'Tampilan kurang responsif di HP.',
-    last_active: 'July 21, 2025',
-  },
-];
-
 export default function ManageCritic() {
   const navigate = useNavigate();
-  const [critics, setCritics] = useState(dummyCritics);
+  const [critics, setCritics] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
   useEffect(() => {
@@ -29,39 +13,74 @@ export default function ManageCritic() {
     if (!adminEmail) {
       alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
       navigate('/admin/login');
+      return;
     }
+
+    const fetchCritics = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/critics');
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setCritics(data);
+        } else {
+          console.error('❌ Respon bukan array:', data);
+          setCritics([]);
+        }
+      } catch (error) {
+        console.error('❌ Gagal ambil data kritik:', error);
+        setCritics([]);
+      }
+    };
+
+    fetchCritics();
   }, [navigate]);
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
 
-  const deleteCritic = (id) => {
+  // ✅ Fungsi deleteCritic diperbarui agar kirim request DELETE ke backend
+  const deleteCritic = async (id) => {
     const confirmDelete = window.confirm('Yakin ingin menghapus kritik ini?');
-    if (confirmDelete) {
-      setCritics((prev) => prev.filter((c) => c.id !== id));
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/critics/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        alert('✅ Kritik berhasil dihapus');
+        setCritics((prev) => prev.filter((c) => c.id !== id));
+      } else {
+        alert('❌ Gagal menghapus kritik');
+      }
+    } catch (error) {
+      console.error('❌ Error saat menghapus kritik:', error);
+      alert('❌ Terjadi kesalahan saat menghapus');
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-1/6 bg-white p-6 border-r flex flex-col justify-between">
+    <div className="flex min-h-screen bg-gray-100 relative">
+      {/* Floating Sidebar */}
+      <aside className="fixed top-6 left-6 z-50 w-60 bg-[#0E1E32] text-white rounded-2xl shadow-xl p-6 flex flex-col justify-between h-[90vh]">
         <div>
           <div
             onClick={() => navigate('/admin/dashboard')}
-            className="text-purple-700 font-semibold text-lg mb-6 cursor-pointer hover:text-purple-600 flex items-center gap-2"
+            className="text-white font-semibold text-lg mb-6 cursor-pointer flex items-center gap-2 hover:text-purple-300"
           >
             <FaChartBar /> Dashboard
           </div>
-          <nav className="space-y-4 text-gray-700">
+          <nav className="space-y-4 text-gray-300">
             <div
               onClick={() => navigate('/admin/manage-user')}
-              className="hover:text-purple-600 cursor-pointer flex items-center gap-2"
+              className="hover:text-white cursor-pointer flex items-center gap-2"
             >
               <FaUser /> Users
             </div>
-            <div className="hover:text-purple-600 cursor-pointer font-semibold flex items-center gap-2">
+            <div className="hover:text-white cursor-pointer flex items-center gap-2">
               <FaComments /> Critic’s
             </div>
           </nav>
@@ -72,14 +91,14 @@ export default function ManageCritic() {
             alert('✅ Logout berhasil');
             navigate('/admin/login');
           }}
-          className="text-sm text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded mt-10"
+          className="text-sm text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded"
         >
           Logout
         </button>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 bg-gray-50 p-10 rounded-tr-3xl">
+      <main className="ml-72 flex-1 bg-gray-50 p-10 rounded-tr-3xl">
         <h2 className="text-2xl font-semibold mb-6">Manage Critics</h2>
 
         <div className="overflow-auto rounded-lg shadow bg-white">
@@ -108,7 +127,6 @@ export default function ManageCritic() {
                       >
                         Action <FiChevronDown />
                       </button>
-
                       {openDropdownId === critic.id && (
                         <div className="absolute z-10 mt-1 w-full bg-white shadow-md border rounded-md">
                           <div

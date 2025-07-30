@@ -3,6 +3,8 @@ import './App.css';
 import './index.css';
 import { motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
+import logo from './assets/logo.png';
+
 
 function Trending() {
   const [articles, setArticles] = useState([]);
@@ -35,8 +37,9 @@ function Trending() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E1E32] text-white">
+        <img src={logo} alt="Logo" className="w-14 h-14 mb-4 animate-pulse" />
         <ClipLoader color="#ffffff" size={40} />
-        <p className="mt-3 text-sm">Loading Trending...</p>
+        <p className="mt-2 text-sm">Loading Article...</p>
       </div>
     );
   }

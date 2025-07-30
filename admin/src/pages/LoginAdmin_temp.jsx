@@ -7,23 +7,26 @@ export default function LoginAdmin() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaText, setCaptchaText] = useState('');
+  const [captchaSvg, setCaptchaSvg] = useState('');
   const [userCaptcha, setUserCaptcha] = useState('');
 
-  // Dummy captcha generator
-  const generateCaptcha = () => {
-    const random = Math.random().toString(36).substring(2, 8);
-    setCaptchaText(random);
+  const fetchCaptcha = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/captcha', {
+        credentials: 'include',
+      });
+      const svg = await res.text();
+      setCaptchaSvg(svg);
+    } catch (err) {
+      console.error('❌ Gagal fetch captcha:', err);
+    }
   };
 
   useEffect(() => {
-    generateCaptcha();
+    fetchCaptcha();
 
-    // Auto-login if already stored
     const adminEmail = localStorage.getItem('adminEmail');
-    if (adminEmail) {
-      navigate('/admin/dashboard');
-    }
+    if (adminEmail) navigate('/admin/dashboard');
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -33,24 +36,54 @@ export default function LoginAdmin() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email.trim() || !formData.password.trim()) {
+    const email = formData.email.trim();
+    const password = formData.password.trim();
+
+    if (!email || !password) {
       alert('❌ Email dan Password tidak boleh kosong.');
       return;
     }
 
-    if (userCaptcha !== captchaText) {
-      alert('❌ Captcha salah.');
-      generateCaptcha();
-      return;
+    try {
+      // Verifikasi Captcha
+      const captchaRes = await fetch('http://localhost:4000/verify-captcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ captcha: userCaptcha }),
+      });
+
+      if (!captchaRes.ok) {
+        alert('❌ Captcha salah.');
+        fetchCaptcha();
+        return;
+      }
+
+      // Login Admin
+      const loginRes = await fetch('http://localhost:4000/login-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!loginRes.ok) {
+        const errMsg = await loginRes.json();
+        alert(`❌ ${errMsg.message}`);
+        return;
+      }
+
+      const result = await loginRes.json();
+      localStorage.setItem('adminEmail', result.admin.email);
+      alert('✅ Login berhasil');
+      navigate('/admin/dashboard');
+
+    } catch (err) {
+      console.error('❌ Error saat login admin:', err);
+      alert('❌ Terjadi kesalahan server.');
     }
-
-    // Simpan ke localStorage (dummy)
-    localStorage.setItem('adminEmail', formData.email);
-
-    navigate('/admin/dashboard');
   };
 
   return (
@@ -91,15 +124,15 @@ export default function LoginAdmin() {
             </span>
           </div>
 
-          {/* Dummy Captcha */}
           <label className="block text-sm font-semibold mb-1 text-gray-700">Captcha</label>
           <div className="flex items-center space-x-2 mb-3">
-            <div className="bg-gray-200 text-gray-800 px-3 py-1 rounded font-mono text-sm select-none">
-              {captchaText}
-            </div>
+            <div
+              className="bg-gray-100 rounded overflow-hidden border"
+              dangerouslySetInnerHTML={{ __html: captchaSvg }}
+            />
             <button
               type="button"
-              onClick={generateCaptcha}
+              onClick={fetchCaptcha}
               className="text-blue-600 hover:text-blue-800 text-lg p-1 rounded-full"
               title="Refresh Captcha"
             >
