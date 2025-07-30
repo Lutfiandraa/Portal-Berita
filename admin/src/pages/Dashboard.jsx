@@ -73,7 +73,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="ml-72 flex-1 bg-gray-50 p-10 rounded-tr-3xl">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Winni New's Monitoring Activity Center</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">Winnicode New's Monitoring Activity Center</h1>
         <p className="text-gray-600 mb-8">
           Use left panel to access Critism & User's.
         </p>
