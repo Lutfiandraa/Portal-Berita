@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiRefreshCcw } from 'react-icons/fi';
+import logo from '../assets/logo.png'; // ✅ Perbaikan path logo
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
@@ -48,7 +49,6 @@ export default function LoginAdmin() {
     }
 
     try {
-      // Verifikasi Captcha
       const captchaRes = await fetch('http://localhost:4000/verify-captcha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +62,6 @@ export default function LoginAdmin() {
         return;
       }
 
-      // Login Admin
       const loginRes = await fetch('http://localhost:4000/login-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,7 +78,6 @@ export default function LoginAdmin() {
       localStorage.setItem('adminEmail', result.admin.email);
       alert('✅ Login berhasil');
       navigate('/admin/dashboard');
-
     } catch (err) {
       console.error('❌ Error saat login admin:', err);
       alert('❌ Terjadi kesalahan server.');
@@ -89,7 +87,8 @@ export default function LoginAdmin() {
   return (
     <div className="min-h-screen bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text flex items-center justify-center pt-24">
       <div className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16">
-        <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t-md">
+        <div className="bg-[#0E1E32] text-white flex items-center justify-center gap-3 py-4 rounded-t-md">
+          <img src={logo} alt="Logo" className="h-8 w-8" />
           <h2 className="text-xl font-semibold">Login Admin Panel</h2>
         </div>
 
