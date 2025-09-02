@@ -1,8 +1,8 @@
 {
   "installCommand": "npm install --legacy-peer-deps",
   "projects": {
-    "frontend": {
-      "rootDirectory": "frontend"
+    "admin": {
+      "rootDirectory": "admin"
     }
   }
 }
