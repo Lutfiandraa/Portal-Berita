@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "client": {
+      "rootDirectory": "client"
+    },
+    "admin": {
+      "rootDirectory": "admin"
+    }
+  }
+}
