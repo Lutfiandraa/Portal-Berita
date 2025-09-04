@@ -5,6 +5,7 @@ import logo from '../assets/logo.png';
 
 const API_KEY = process.env.REACT_APP_NEWS_API_KEY; 
 const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${API_KEY}`;
+console.log("NewsAPI Key:", process.env.REACT_APP_NEWS_API_KEY);
 
 const NewsList = () => {
   const [articles, setArticles] = useState([]);
