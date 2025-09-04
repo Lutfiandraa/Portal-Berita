@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import logo from '../assets/logo.png';
 
-const API_KEY = process.env.REACT_APP_NEWS_API_KEY; 
+const API_KEY = "01d3df6599db4d749cf23b47b150c8ce";
 const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${API_KEY}`;
 console.log("NewsAPI Key:", process.env.REACT_APP_NEWS_API_KEY);
 
