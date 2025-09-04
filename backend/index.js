@@ -8,7 +8,7 @@ const svgCaptcha = require('svg-captcha');
 const bcrypt = require('bcrypt');
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 // ✅ RUTE USER STATS
 const userStatsRoute = require('./routes/userStats');
