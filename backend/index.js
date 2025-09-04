@@ -47,7 +47,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// ✅ Activate user
+// ✅ PATCH: Aktivasi User
 app.patch('/api/users/:id/activate', async (req, res) => {
   const { id } = req.params;
   try {
@@ -62,20 +62,17 @@ app.patch('/api/users/:id/activate', async (req, res) => {
   }
 });
 
-// ✅ PATCH: Nonaktifkan user berdasarkan ID
+// ✅ PATCH: Nonaktifkan User
 app.patch('/api/users/:id/deactivate', async (req, res) => {
   const { id } = req.params;
-
   try {
     const result = await pool.query(
       `UPDATE users SET status = 'nonaktif' WHERE userid = $1 RETURNING *`,
       [id]
     );
-
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
     }
-
     res.status(200).json({ message: 'User berhasil dinonaktifkan', user: result.rows[0] });
   } catch (error) {
     console.error('❌ Gagal menonaktifkan user:', error);
@@ -152,7 +149,6 @@ app.post('/verify-captcha', (req, res) => {
 // ✅ GET PROFILE
 app.get('/profile', async (req, res) => {
   const { email, name } = req.query;
-
   try {
     if (email) {
       const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -198,7 +194,6 @@ app.post('/profile', async (req, res) => {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'Email sudah digunakan' });
     }
-
     console.error('❌ Gagal simpan profil ke DB:', err);
     res.status(500).json({ error: 'Terjadi kesalahan pada server' });
   }
@@ -207,25 +202,19 @@ app.post('/profile', async (req, res) => {
 // ✅ POST CRITIC
 app.post('/critics', async (req, res) => {
   const { name, content } = req.body;
-
   if (!name || !content) {
     return res.status(400).json({ error: 'Nama dan komentar wajib diisi' });
   }
-
   try {
     const userResult = await pool.query('SELECT userid FROM users WHERE name = $1', [name]);
-
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User tidak ditemukan' });
     }
-
     const userid = userResult.rows[0].userid;
-
     const result = await pool.query(
       'INSERT INTO critics (userid, content, datecreated) VALUES ($1, $2, NOW()) RETURNING *',
       [userid, content]
     );
-
     res.status(201).json({ message: 'Kritik berhasil disimpan', data: result.rows[0] });
   } catch (err) {
     console.error('❌ Gagal simpan kritik:', err);
@@ -236,21 +225,16 @@ app.post('/critics', async (req, res) => {
 // ✅ LOGIN ADMIN
 app.post('/login-admin', async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const result = await pool.query('SELECT * FROM admins WHERE email = $1', [email]);
-
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Admin tidak ditemukan' });
     }
-
     const admin = result.rows[0];
-
     const valid = await bcrypt.compare(password, admin.password);
     if (!valid) {
       return res.status(401).json({ message: 'Password salah' });
     }
-
     res.json({ message: 'Login berhasil', admin: { name: admin.name, email: admin.email } });
   } catch (error) {
     console.error('Gagal login admin:', error);
@@ -268,13 +252,11 @@ app.post('/logout', (req, res) => {
 app.get('/auth/status', async (req, res) => {
   const { email } = req.query;
   if (!email) return res.status(400).json({ error: 'Email wajib diisi' });
-
   try {
     const result = await pool.query('SELECT status FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User tidak ditemukan' });
     }
-
     return res.json({ status: result.rows[0].status }); // 'aktif' atau 'nonaktif'
   } catch (err) {
     console.error('❌ Gagal cek status user:', err);
