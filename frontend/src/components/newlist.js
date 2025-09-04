@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { ClipLoader } from 'react-spinners';
 import logo from '../assets/logo.png';
 
+// ✅ Pakai langsung API Key (dipaksa di frontend)
 const API_KEY = "01d3df6599db4d749cf23b47b150c8ce";
 const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&pageSize=30&apiKey=${API_KEY}`;
-console.log("NewsAPI Key:", process.env.REACT_APP_NEWS_API_KEY);
 
 const NewsList = () => {
   const [articles, setArticles] = useState([]);
@@ -18,15 +18,20 @@ const NewsList = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
+        // Tambahkan timestamp agar tidak cache
         const response = await fetch(`${BASE_URL}&timestamp=${Date.now()}`);
         const data = await response.json();
         if (data.status === 'ok') {
           setArticles(data.articles);
+
+          // Ambil kata kunci untuk placeholder pencarian
           const titles = data.articles.map(a => a.title).filter(Boolean);
           const words = titles.flatMap(t => t.split(' '));
           const keywordCandidates = words.filter(w => w.length > 4);
           const unique = [...new Set(keywordCandidates)].slice(0, 50);
           setPlaceholderList(unique);
+        } else {
+          console.error("NewsAPI Error:", data);
         }
       } catch (error) {
         console.error('Gagal mengambil berita:', error);
@@ -36,10 +41,11 @@ const NewsList = () => {
     };
 
     fetchNews();
-    const intervalId = setInterval(fetchNews, 300000);
+    const intervalId = setInterval(fetchNews, 300000); // refresh 5 menit
     return () => clearInterval(intervalId);
   }, []);
 
+  // Rotasi placeholder pencarian
   useEffect(() => {
     const intervalId = setInterval(() => {
       setPlaceholderIndex(prev => (prev + 1) % (placeholderList.length || 1));
@@ -47,6 +53,7 @@ const NewsList = () => {
     return () => clearInterval(intervalId);
   }, [placeholderList]);
 
+  // Filter berdasarkan pencarian
   const filteredArticles = articles.filter(article =>
     article.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     article.description?.toLowerCase().includes(searchTerm.toLowerCase())
