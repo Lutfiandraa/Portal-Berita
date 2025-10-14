@@ -59,7 +59,7 @@ function App() {
           <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
             <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
             <p className="text-gray-400 text-sm">
-              copyright © 2025 | Royal Tribune
+              copyright © 2025 | Garuda Tribune
             </p>
           </div>
         </footer>
