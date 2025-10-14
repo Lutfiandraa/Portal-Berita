@@ -59,7 +59,7 @@ function App() {
           <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
             <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
             <p className="text-gray-400 text-sm">
-              copyright © 2025 | Winnicode New's
+              copyright © 2025 | Royal Tribune
             </p>
           </div>
         </footer>
@@ -75,7 +75,7 @@ function App() {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <img src={logo} alt="Logo" className="w-8 h-8" />
-            <span className="text-xl font-bold">Winnicode New's</span>
+            <span className="text-xl font-bold">Garuda Tribune</span>
           </div>
 
           {/* Desktop Menu */}
@@ -153,7 +153,7 @@ function App() {
         <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
           <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
           <p className="text-gray-400 text-sm">
-            copyright © 2025 | Winnicode New's
+            copyright © 2025 | Garuda Tribune
           </p>
         </div>
       </footer>
