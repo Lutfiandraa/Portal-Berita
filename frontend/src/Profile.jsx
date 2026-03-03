@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { motion } from 'framer-motion'; // Import Framer Motion
 
 const Profile = () => {
   const [formData, setFormData] = useState({
@@ -11,25 +12,29 @@ const Profile = () => {
 
   const [profileComplete, setProfileComplete] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('userEmail');
-    if (savedEmail) {
-      // 🔍 Cek status aktif/tidak
-      fetch(`http://localhost:4000/auth/status?email=${savedEmail}`)
+    setHasMounted(true);
+
+    const loadProfile = (email) => {
+      if (!email) return;
+
+      // Cek status aktif/nonaktif
+      fetch(`http://localhost:4000/auth/status?email=${encodeURIComponent(email)}`, { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data.status === 'nonaktif') {
-            alert('❌ Akun Anda telah dinonaktifkan oleh admin.');
+            alert('Your account has been deactivated by the administrator.');
             localStorage.removeItem('userEmail');
             navigate('/login');
           }
         })
         .catch((err) => console.error('❌ Error cek status:', err));
 
-      // 🔍 Ambil profil
-      fetch(`http://localhost:4000/profile?email=${savedEmail}`)
+      // Ambil profil
+      fetch(`http://localhost:4000/profile?email=${encodeURIComponent(email)}`, { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data && data.name && data.email) {
@@ -42,7 +47,24 @@ const Profile = () => {
           }
         })
         .catch((err) => console.error('❌ Error fetch profil:', err));
+    };
+
+    // Sumber email: session (setelah login) atau localStorage (fallback)
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+      loadProfile(savedEmail);
+      return;
     }
+
+    // Kalau tidak ada localStorage, cek session (user sudah login)
+    fetch('http://localhost:4000/api/check-session', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((session) => {
+        if (session.isLoggedIn && session.userEmail) {
+          loadProfile(session.userEmail);
+        }
+      })
+      .catch(() => {});
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -69,22 +91,26 @@ const Profile = () => {
       console.log('✅ Response from backend:', result);
 
       if (response.ok) {
-        localStorage.setItem('userEmail', formData.email);
         setProfileComplete(true);
-        alert('Successfully saved your profile!');
+        alert('Profile saved. Please sign in to submit feedback.');
         navigate('/login');
       } else {
-        alert(result.error || 'Terjadi kesalahan.');
+        alert(result.error || 'An error occurred.');
       }
     } catch (error) {
       console.error('❌ Gagal mengirim data:', error);
-      alert('Something went wrong while saving your profile.');
+      alert('Something went wrong whilst saving your profile.');
     }
   };
 
   return (
     <div className="min-h-screen bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text flex items-center justify-center pt-24">
-      <div className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}  // Animation start position
+        animate={{ opacity: hasMounted ? 1 : 0, y: 0 }}  // Animation end position
+        transition={{ duration: 0.5 }}  // Animation duration
+        className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16"
+      >
         <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t-md">
           <h2 className="text-xl font-semibold">
             {profileComplete ? 'Profile Completed!' : 'Complete your Profile'}
@@ -144,12 +170,12 @@ const Profile = () => {
               </button>
 
               <Link to="/login" className="block text-center text-sm text-blue-600 hover:underline font-medium">
-                Already have an account? Login here
+                Already have an account? Sign in here
               </Link>
             </form>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

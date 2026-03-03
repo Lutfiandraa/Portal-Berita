@@ -14,11 +14,11 @@ function Trending() {
     const fetchNews = async () => {
       try {
         const response = await fetch(
-          'https://newsapi.org/v2/top-headlines?country=us&apiKey=01d3df6599db4d749cf23b47b150c8ce'
+          'https://newsapi.org/v2/top-headlines?country=us&pageSize=20&apiKey=01d3df6599db4d749cf23b47b150c8ce'
         );
         const data = await response.json();
         if (data.status === 'ok') {
-          setArticles(data.articles.slice(0, 5));
+          setArticles(data.articles.slice(0, 20));
         }
       } catch (error) {
         console.error('Gagal mengambil data berita:', error);
@@ -37,9 +37,9 @@ function Trending() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E1E32] text-white">
-        <img src={logo} alt="Logo" className="w-14 h-14 mb-4 animate-pulse" />
+        <img src={logo} alt="Garuda Tribune" className="w-14 h-14 mb-4 animate-pulse" />
         <ClipLoader color="#ffffff" size={40} />
-        <p className="mt-2 text-sm">Loading Article...</p>
+        <p className="mt-2 text-sm">Loading...</p>
       </div>
     );
   }
@@ -49,7 +49,7 @@ function Trending() {
       <div className="container mx-auto px-6 my-10">
         {/* Header */}
         <div className="w-full rounded-lg mb-10 flex items-center justify-center bg-[#0E1E32] dark:bg-[#1A2A45]" style={{ minHeight: '120px' }}>
-          <h1 className="text-4xl font-semibold text-center text-white m-0">Trending Today</h1>
+          <h1 className="text-4xl font-semibold text-center text-white m-0" style={{ fontFamily: "'STIX Two Text', serif" }}>Trending Today</h1>
         </div>
 
         {/* Main Article */}
@@ -75,8 +75,6 @@ function Trending() {
           {articles.slice(1).map((article, index) => (
             <motion.div
               key={index}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: 'spring', stiffness: 300 }}
               className="bg-white dark:bg-[#1A2A45] dark:text-white rounded-lg shadow-md overflow-hidden"
             >
               <div className="relative">

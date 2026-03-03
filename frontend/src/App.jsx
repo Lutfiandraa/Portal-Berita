@@ -38,7 +38,13 @@ function App() {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:4000/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (_) {}
     localStorage.removeItem('userEmail');
     window.location.href = '/login';
   };
@@ -50,14 +56,14 @@ function App() {
       <div className="min-h-screen flex flex-col justify-between bg-[#0E1E32] text-white">
         <div className="flex-grow flex items-center justify-center">
           <div className="text-center">
-            <img src={logo} alt="Logo" className="w-16 h-16 mb-4 animate-pulse mx-auto" />
+            <img src={logo} alt="Garuda Tribune" className="w-16 h-16 mb-4 animate-pulse mx-auto" />
             <ClipLoader color="#ffffff" size={40} />
-            <p className="mt-2 text-sm">Loading News...</p>
+            <p className="mt-2 text-sm">Loading...</p>
           </div>
         </div>
         <footer className="bg-[#0E1E32] text-center py-4">
           <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
-            <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
+            <img src={logo} alt="Garuda Tribune" className="w-12 h-auto mb-1" />
             <p className="text-gray-400 text-sm">
               copyright © 2025 | Garuda Tribune
             </p>
@@ -70,11 +76,11 @@ function App() {
   return (
     <div className="App min-h-screen flex flex-col justify-between font-sans bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text">
       {/* Navbar */}
-      <nav className="shadow-md py-3 sticky top-0 z-50 bg-[#0E1E32]">
+      <nav className="shadow-md py-3 sticky top-0 z-50 bg-[#0E1E32]" style={{ fontFamily: "'STIX Two Text', serif" }}>
         <div className="container mx-auto flex justify-between items-center px-6 text-white">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img src={logo} alt="Logo" className="w-8 h-8" />
+            <img src={logo} alt="Garuda Tribune" className="w-8 h-8" />
             <span className="text-xl font-bold">Garuda Tribune</span>
           </div>
 
@@ -83,7 +89,7 @@ function App() {
             <li><Link to="/" className="hover:text-gray-300">Home</Link></li>
             <li><Link to="/trending" className="hover:text-gray-300">Trending</Link></li>
             <li><Link to="/articles" className="hover:text-gray-300">Articles</Link></li>
-            <li><Link to="/critics" className="hover:text-gray-300">Critics</Link></li>
+            <li><Link to="/critics" className="hover:text-gray-300">Feedback</Link></li>
           </ul>
 
           {/* Desktop Icons */}
@@ -115,7 +121,7 @@ function App() {
             <Link to="/" onClick={() => setIsOpen(false)} className="block hover:text-gray-300">Home</Link>
             <Link to="/trending" onClick={() => setIsOpen(false)} className="block hover:text-gray-300">Trending</Link>
             <Link to="/articles" onClick={() => setIsOpen(false)} className="block hover:text-gray-300">Articles</Link>
-            <Link to="/critics" onClick={() => setIsOpen(false)} className="block hover:text-gray-300">Critics</Link>
+            <Link to="/critics" onClick={() => setIsOpen(false)} className="block hover:text-gray-300">Feedback</Link>
 
             <div className="flex items-center space-x-4 pt-4 border-t border-gray-600">
               <button onClick={toggleTheme} className="text-white hover:text-yellow-300">
@@ -151,7 +157,7 @@ function App() {
       {/* Footer */}
       <footer className="bg-[#0E1E32] text-center py-4">
         <div className="max-w-sm w-full mx-auto flex flex-col items-center justify-center px-4">
-          <img src={logo} alt="Winnicode Logo" className="w-12 h-auto mb-1" />
+          <img src={logo} alt="Garuda Tribune" className="w-12 h-auto mb-1" />
           <p className="text-gray-400 text-sm">
             copyright © 2025 | Garuda Tribune
           </p>

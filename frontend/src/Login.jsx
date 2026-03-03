@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiRefreshCcw } from 'react-icons/fi';
+import { motion } from 'framer-motion'; // Import Framer Motion
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Login = () => {
 
   const [captchaSVG, setCaptchaSVG] = useState('');
   const [userCaptcha, setUserCaptcha] = useState('');
+  const [hasMounted, setHasMounted] = useState(false);
 
   const fetchCaptcha = async () => {
     try {
@@ -25,6 +27,7 @@ const Login = () => {
 
   useEffect(() => {
     fetchCaptcha();
+    setHasMounted(true);
   }, []);
 
   const handleChange = (e) => {
@@ -47,35 +50,46 @@ const Login = () => {
 
       const verifyResult = await verify.json();
       if (!verify.ok) {
-        alert(verifyResult.error || 'Captcha salah');
+        alert(verifyResult.error || 'Incorrect captcha');
         fetchCaptcha();
         return;
       }
 
-      const res = await fetch(`http://localhost:4000/profile?email=${formData.email}`);
-      const user = await res.json();
+      // Login via backend agar session (cookie) terbentuk — wajib untuk bisa komentar
+      const res = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
 
       if (res.ok) {
-        if (user.password === formData.password) {
-          localStorage.setItem('userEmail', formData.email);
-          navigate('/profile');
-        } else {
-          alert('Password salah.');
-        }
+        // Session sudah diset di cookie; user boleh komentar jika profil lengkap & status aktif
+        navigate('/critic');
       } else {
-        alert(user.error || 'User tidak ditemukan');
+        alert(data.message || data.error || 'Sign-in failed');
       }
     } catch (error) {
       console.error('❌ Gagal login:', error);
-      alert('Terjadi kesalahan saat login');
+      alert('An error occurred whilst signing in');
     }
   };
 
   return (
     <div className="min-h-screen bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text flex items-center justify-center pt-24">
-      <div className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}  // Animation start position
+        animate={{ opacity: hasMounted ? 1 : 0, y: 0 }}  // Animation end position
+        transition={{ duration: 0.5 }}  // Animation duration
+        className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16"
+      >
         <div className="bg-[#0E1E32] text-white text-center py-4 rounded-t-md">
-          <h2 className="text-xl font-semibold">Login to Your Profile</h2>
+          <h2 className="text-xl font-semibold">Sign in to your profile</h2>
         </div>
 
         <form className="w-full px-6 py-6" onSubmit={handleSubmit}>
@@ -135,17 +149,17 @@ const Login = () => {
             type="submit"
             className="bg-blue-600 text-white px-6 py-1.5 text-sm rounded-full hover:bg-blue-700 transition font-semibold shadow w-full mb-4"
           >
-            Login
+            Sign in
           </button>
 
           <Link
             to="/profile"
             className="block text-center text-sm text-blue-600 hover:underline font-medium"
           >
-            New here? Get Started!
+            New here? Register
           </Link>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

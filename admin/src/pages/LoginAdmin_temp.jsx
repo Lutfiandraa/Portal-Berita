@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiRefreshCcw } from 'react-icons/fi';
-import logo from '../assets/logo.png'; // ✅ Perbaikan path logo
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
@@ -44,7 +43,7 @@ export default function LoginAdmin() {
     const password = formData.password.trim();
 
     if (!email || !password) {
-      alert('❌ Email dan Password tidak boleh kosong.');
+      alert('Email and password are required.');
       return;
     }
 
@@ -76,7 +75,7 @@ export default function LoginAdmin() {
 
       const result = await loginRes.json();
       localStorage.setItem('adminEmail', result.admin.email);
-      alert('✅ Login berhasil');
+      alert('Sign-in successful');
       navigate('/admin/dashboard');
     } catch (err) {
       console.error('❌ Error saat login admin:', err);
@@ -88,8 +87,8 @@ export default function LoginAdmin() {
     <div className="min-h-screen bg-light-background text-light-text dark:bg-dark-background dark:text-dark-text flex items-center justify-center pt-24">
       <div className="w-full max-w-md bg-white text-gray-800 rounded shadow-md mb-16">
         <div className="bg-[#0E1E32] text-white flex items-center justify-center gap-3 py-4 rounded-t-md">
-          <img src={logo} alt="Logo" className="h-8 w-8" />
-          <h2 className="text-xl font-semibold">Login Admin Panel</h2>
+          <span className="text-2xl font-bold">GT</span>
+          <h2 className="text-xl font-semibold">Admin sign in</h2>
         </div>
 
         <form className="w-full px-6 py-6" onSubmit={handleSubmit}>
@@ -151,7 +150,7 @@ export default function LoginAdmin() {
             type="submit"
             className="bg-blue-600 text-white px-6 py-1.5 text-sm rounded-full hover:bg-blue-700 transition font-semibold shadow w-full mb-2"
           >
-            Login
+            Sign in
           </button>
         </form>
       </div>

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaComments, FaChartBar } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
+import AdminLayout from '../components/AdminLayout';
 
 export default function ManageUser() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const adminEmail = localStorage.getItem('adminEmail');
     if (!adminEmail) {
-      alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
+      alert('Access denied. Please sign in as administrator first.');
       navigate('/admin/login');
       return;
     }
@@ -23,17 +25,17 @@ export default function ManageUser() {
       .then(data => {
         const formatted = data.map(user => ({
           id: user.userid,
-          email: user.email,
-          name: user.name,
+          email: user.email || '-',
+          name: user.name || '-',
           status: user.status === 'aktif' ? 'Online' : 'Offline',
-          lastActive: new Date(user.last_active).toLocaleString()
+          lastActive: user.last_active ? new Date(user.last_active).toLocaleString() : '-'
         }));
         setUsers(formatted);
         setFilteredUsers(formatted);
       })
       .catch(err => {
-        console.error('❌ Gagal ambil data user:', err);
-        alert('Gagal mengambil data user dari server.');
+        console.error('Failed to fetch users:', err);
+        alert('Failed to fetch users from server.');
       });
   }, [navigate]);
 
@@ -61,7 +63,7 @@ export default function ManageUser() {
         method: 'PATCH',
       });
 
-      if (!res.ok) throw new Error('Gagal update status');
+      if (!res.ok) throw new Error('Failed to update status');
 
       const updatedUsers = users.map(user =>
         user.id === id ? { ...user, status: newStatus } : user
@@ -69,130 +71,141 @@ export default function ManageUser() {
       setUsers(updatedUsers);
       setOpenDropdownId(null);
     } catch (err) {
-      console.error('❌ Gagal ubah status:', err);
-      alert('Gagal mengubah status user.');
+      console.error('Failed to update status:', err);
+      alert('Failed to update user status.');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminEmail');
-    alert('✅ Logout berhasil');
-    navigate('/admin/login');
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/users/${userToDelete}/delete`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete user');
+
+      // Remove deleted user from the list
+      setUsers(users.filter(user => user.id !== userToDelete));
+      setIsDeleteModalOpen(false);
+      alert('User deleted successfully');
+    } catch (err) {
+console.error('Failed to delete user:', err);
+        alert('Failed to delete user');
+    }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 relative">
-      {/* Sidebar */}
-      <aside className="fixed top-6 left-6 z-50 w-60 bg-[#0E1E32] text-white rounded-2xl shadow-xl p-6 flex flex-col justify-between h-[90vh]">
-        <div>
-          <div
-            className="text-white font-semibold text-lg mb-6 cursor-pointer flex items-center gap-2 hover:text-purple-300"
-            onClick={() => navigate('/admin/dashboard')}
-          >
-            <FaChartBar /> Dashboard
-          </div>
-          <nav className="space-y-4 text-gray-300">
-            <div className="hover:text-white cursor-pointer flex items-center gap-2 font-semibold">
-              <FaUser /> Users
-            </div>
-            <div
-              className="hover:text-white cursor-pointer flex items-center gap-2"
-              onClick={() => navigate('/admin/manage-critics')}
-            >
-              <FaComments /> Critic’s
-            </div>
-          </nav>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded"
-        >
-          Logout
-        </button>
-      </aside>
+    <AdminLayout title="Manage Users" breadcrumbLabel="Users">
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search Name or Email"
+          className="w-full max-w-md px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-      {/* Main Content */}
-      <main className="ml-72 flex-1 bg-gray-50 p-10 rounded-tr-3xl">
-        <h2 className="text-2xl font-semibold mb-6">Manage Users</h2>
-
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search Name or Email"
-            className="w-1/3 px-4 py-2 rounded-full border focus:outline-none"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="overflow-auto rounded-lg shadow bg-white">
-          <table className="w-full table-auto text-left">
-            <thead>
-              <tr className="bg-gray-100 text-sm text-gray-600 uppercase">
-                <th className="p-4">User ID</th>
-                <th className="p-4">By E-Mail</th>
-                <th className="p-4">Name</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Last Active</th>
-                <th className="p-4">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map(user => (
-                <tr key={user.id} className="border-t text-sm hover:bg-gray-50">
-                  <td className="p-4">{user.id}</td>
-                  <td className="p-4 font-semibold">{user.email}</td>
-                  <td className="p-4">{user.name}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-white text-xs font-medium ${
-                        user.status === 'Online' ? 'bg-green-400' : 'bg-red-500'
-                      }`}
+      <div className="overflow-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="w-full table-auto text-left">
+          <thead>
+            <tr className="border-b border-gray-200 text-sm text-gray-500 uppercase">
+              <th className="p-4">User ID</th>
+              <th className="p-4">By E-Mail</th>
+              <th className="p-4">Name</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Last Active</th>
+              <th className="p-4">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.map(user => (
+              <tr key={user.id} className="border-t border-gray-100 text-sm hover:bg-gray-50">
+                <td className="p-4 text-gray-700">{user.id}</td>
+                <td className="p-4 font-medium text-gray-800">{user.email}</td>
+                <td className="p-4 text-gray-700">{user.name}</td>
+                <td className="p-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-white text-xs font-medium ${
+                      user.status === 'Online' ? 'bg-emerald-500' : 'bg-gray-400'
+                    }`}
+                  >
+                    {user.status}
+                  </span>
+                </td>
+                <td className="p-4 text-gray-500">{user.lastActive}</td>
+                <td className="p-4">
+                  <div className="relative w-[110px]">
+                    <button
+                      onClick={() => toggleDropdown(user.id)}
+                      className="border border-gray-300 bg-white text-gray-700 px-3 py-1 text-sm rounded-lg hover:bg-gray-50 w-full flex items-center justify-between"
                     >
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="p-4">{user.lastActive}</td>
-                  <td className="p-4">
-                    <div className="relative w-[110px]">
-                      <button
-                        onClick={() => toggleDropdown(user.id)}
-                        className="border border-blue-500 text-blue-600 px-3 py-1 text-sm rounded-md hover:bg-blue-50 w-full flex items-center justify-between"
-                      >
-                        Action <FiChevronDown />
-                      </button>
-                      {openDropdownId === user.id && (
-                        <div className="absolute z-10 mt-1 w-full bg-white shadow-md border rounded-md right-0">
-                          <div
-                            onClick={() =>
-                              handleStatusChange(
-                                user.id,
-                                user.status === 'Online' ? 'Offline' : 'Online'
-                              )
-                            }
-                            className={`px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm font-medium ${
-                              user.status === 'Online' ? 'text-red-600' : 'text-green-600'
-                            }`}
-                          >
-                            {user.status === 'Online' ? 'Deactivate' : 'Activate'}
-                          </div>
+                      Action <FiChevronDown />
+                    </button>
+                    {openDropdownId === user.id && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg right-0">
+                        <div
+                          onClick={() =>
+                            handleStatusChange(
+                              user.id,
+                              user.status === 'Online' ? 'Offline' : 'Online'
+                            )
+                          }
+                          className={`px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm font-medium ${
+                            user.status === 'Online' ? 'text-rose-600' : 'text-emerald-600'
+                          }`}
+                        >
+                          {user.status === 'Online' ? 'Deactivate' : 'Activate'}
                         </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredUsers.length === 0 && (
-                <tr>
-                  <td colSpan="6" className="text-center py-6 text-gray-400">
-                    No users found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                        <div
+                          onClick={() => {
+                            setUserToDelete(user.id);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm font-medium text-rose-600"
+                        >
+                          Delete
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredUsers.length === 0 && (
+              <tr>
+                <td colSpan="6" className="text-center py-8 text-slate-500">
+                  No users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-xl text-center max-w-sm">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Delete This User?</h3>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleDeleteUser}
+                className="bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-500"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300"
+              >
+                No
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      )}
+    </AdminLayout>
   );
 }
