@@ -4,8 +4,7 @@ import { ClipLoader } from 'react-spinners';
 import logo from '../assets/logo.png';
 import { FaSearch, FaArrowRight } from 'react-icons/fa';
 
-const API_KEY = "01d3df6599db4d749cf23b47b150c8ce";
-const BASE_URL = `https://newsapi.org/v2/top-headlines?country=us&pageSize=50&apiKey=${API_KEY}`;
+const BASE_URL = process.env.REACT_APP_NEWS_BASE_URL;
 
 const NewsList = () => {
   const [articles, setArticles] = useState([]);

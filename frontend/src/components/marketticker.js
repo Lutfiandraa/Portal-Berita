@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Marquee from 'react-fast-marquee';
 
-const API_KEY = '0e47b59c781e4937bc5dd5ad6477e56e';
-
 const SYMBOLS = [
   'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA'
 ];
@@ -14,7 +12,7 @@ const MarketTicker = () => {
     const fetchMarketData = async () => {
       try {
         const symbolsString = SYMBOLS.join(',');
-        const response = await fetch(`https://api.twelvedata.com/quote?symbol=${symbolsString}&apikey=${API_KEY}`);
+        const response = await fetch(`https://api.twelvedata.com/quote?symbol=${symbolsString}&apikey=${process.env.REACT_APP_MARKET_API_KEY}`);
         const data = await response.json();
         console.log('✅ Data API:', data);
 
