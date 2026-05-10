@@ -15,8 +15,7 @@ import {
   Legend,
 } from 'recharts';
 import AdminLayout from '../components/AdminLayout';
-
-const API_BASE = 'http://localhost:4000';
+import { API_BASE } from '../utils/api';
 
 const KPI_CARDS = [
   { key: 'users', label: 'Total Users', icon: FaUser, color: 'blue', bgColor: 'bg-blue-100', iconColor: 'text-blue-600' },
@@ -36,7 +35,7 @@ export default function Dashboard() {
       navigate('/admin/login');
       return;
     }
-    fetch(`${API_BASE}/api/user-stats`)
+    fetch(`${API_BASE}/api/user-stats`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const formatted = (Array.isArray(data) ? data : []).map(item => ({
@@ -48,12 +47,12 @@ export default function Dashboard() {
       })
       .catch(() => setChartData([]));
 
-    fetch(`${API_BASE}/api/users`)
+    fetch(`${API_BASE}/api/users`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setTotalUsers(Array.isArray(data) ? data.length : 0))
       .catch(() => setTotalUsers(0));
 
-    fetch(`${API_BASE}/api/critics`)
+    fetch(`${API_BASE}/api/critics`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => setTotalCritics(Array.isArray(data) ? data.length : 0))
       .catch(() => setTotalCritics(0));

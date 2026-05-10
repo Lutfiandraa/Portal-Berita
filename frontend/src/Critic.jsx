@@ -4,6 +4,7 @@ import './index.css';
 import { FaRegComments } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from './utils/api';
 
 const Critic = () => {
   const [name, setName] = useState('');
@@ -18,7 +19,7 @@ const Critic = () => {
   const checkSession = async () => {
     try {
       console.log('🔍 Checking session...');
-      const sessionRes = await fetch('http://localhost:4000/api/check-session', {
+      const sessionRes = await fetch(`${API_BASE}/api/check-session`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -49,7 +50,7 @@ const Critic = () => {
       setUserEmail(sessionData.userEmail);
 
       // Cek status user: boleh komentar hanya jika profil lengkap DAN status aktif
-      const statusRes = await fetch(`http://localhost:4000/auth/status?email=${encodeURIComponent(sessionData.userEmail)}`, {
+      const statusRes = await fetch(`${API_BASE}/auth/status?email=${encodeURIComponent(sessionData.userEmail)}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -117,7 +118,7 @@ const Critic = () => {
       setIsLoading(true);
       console.log('📤 Sending critic...', { name, message });
       
-      const res = await fetch('http://localhost:4000/critics', {
+      const res = await fetch(`${API_BASE}/critics`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

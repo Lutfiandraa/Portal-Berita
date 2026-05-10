@@ -5,8 +5,12 @@ const cors = require('cors');
 const session = require('express-session');
 const svgCaptcha = require('svg-captcha');
 const bcrypt = require('bcrypt');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const pgSession = require('connect-pg-simple')(session);
 
 const app = express();
+app.use(helmet());
 const PORT = process.env.PORT || 4000;
 
 // ✅ RUTE USER STATS
@@ -34,7 +38,10 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      if (process.env.NODE_ENV !== 'production') return callback(null, true);
+      return callback(new Error('Origin not allowed'));
+    }
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -51,6 +58,11 @@ app.options('{*splat}', cors());
 
 // ✅ Session Store (Gunakan MemoryStore untuk development)
 const sessionConfig = {
+  store: new pgSession({
+    pool: pool,
+    tableName: 'session',
+    createTableIfMissing: true,  // tidak perlu migrate manual
+  }),
   secret: process.env.SESSION_SECRET || 'captcha-secret-key-development-ubah-ini',
   resave: false,
   saveUninitialized: false, // Changed to false for security
@@ -70,6 +82,26 @@ if (app.get('env') === 'production') {
 }
 
 app.use(session(sessionConfig));
+
+// ✅ RATE LIMITER — untuk endpoint login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ✅ MIDDLEWARE AUTENTIKASI
+const isLoggedIn = (req, res, next) => {
+  if (req.session?.isLoggedIn && req.session?.userEmail) return next();
+  return res.status(401).json({ message: 'Unauthorized' });
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.session?.role === 'admin') return next();
+  return res.status(403).json({ message: 'Forbidden' });
+};
 
 // ✅ Middleware untuk debug session (hanya di development)
 if (process.env.NODE_ENV !== 'production') {
@@ -117,7 +149,7 @@ app.get('/api/check-session', (req, res) => {
 });
 
 // ✅ LOGIN USER - Improved dengan lebih banyak logging
-app.post('/login', async (req, res) => {
+app.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   
   console.log('🔐 Attempting login for:', email);
@@ -214,7 +246,7 @@ app.post('/logout', (req, res) => {
 });
 
 // ✅ GET SEMUA USER
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', isAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT userid, email, name, status, last_active FROM users ORDER BY userid ASC'
@@ -227,7 +259,7 @@ app.get('/api/users', async (req, res) => {
 });
 
 // ✅ PATCH: Aktivasi User
-app.patch('/api/users/:id/activate', async (req, res) => {
+app.patch('/api/users/:id/activate', isAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
@@ -242,7 +274,7 @@ app.patch('/api/users/:id/activate', async (req, res) => {
 });
 
 // ✅ PATCH: Nonaktifkan User
-app.patch('/api/users/:id/deactivate', async (req, res) => {
+app.patch('/api/users/:id/deactivate', isAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
@@ -260,7 +292,7 @@ app.patch('/api/users/:id/deactivate', async (req, res) => {
 });
 
 // ✅ GET SEMUA CRITICS
-app.get('/api/critics', async (req, res) => {
+app.get('/api/critics', isLoggedIn, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -345,7 +377,7 @@ app.post('/critics', async (req, res) => {
 });
 
 // ✅ DELETE CRITIC BY ID
-app.delete('/api/critics/:id', async (req, res) => {
+app.delete('/api/critics/:id', isAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query('DELETE FROM critics WHERE criticid = $1', [id]);
@@ -391,7 +423,7 @@ app.post('/verify-captcha', (req, res) => {
 });
 
 // ✅ GET PROFILE
-app.get('/profile', async (req, res) => {
+app.get('/profile', isLoggedIn, async (req, res) => {
   const { email, name } = req.query;
   try {
     if (email) {
@@ -459,6 +491,9 @@ app.post('/login-admin', async (req, res) => {
     if (!valid) {
       return res.status(401).json({ message: 'Incorrect password' });
     }
+    req.session.role = 'admin';
+    req.session.isLoggedIn = true;
+    req.session.userEmail = admin.email;
     res.json({ message: 'Sign-in successful', admin: { name: admin.name, email: admin.email } });
   } catch (error) {
     console.error('Gagal login admin:', error);
@@ -487,7 +522,7 @@ app.get('/auth/status', async (req, res) => {
 });
 
 // ✅ DELETE USER BY ID
-app.delete('/api/users/:id/delete', async (req, res) => {
+app.delete('/api/users/:id/delete', isAdmin, async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query('DELETE FROM users WHERE userid = $1', [id]);

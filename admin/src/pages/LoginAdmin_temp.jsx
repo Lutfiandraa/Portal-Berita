@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiRefreshCcw } from 'react-icons/fi';
+import { API_BASE } from '../utils/api';
 
 export default function LoginAdmin() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function LoginAdmin() {
 
   const fetchCaptcha = async () => {
     try {
-      const res = await fetch('http://localhost:4000/captcha', {
+      const res = await fetch(`${API_BASE}/captcha`, {
         credentials: 'include',
       });
       const svg = await res.text();
@@ -48,7 +49,7 @@ export default function LoginAdmin() {
     }
 
     try {
-      const captchaRes = await fetch('http://localhost:4000/verify-captcha', {
+      const captchaRes = await fetch(`${API_BASE}/verify-captcha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -61,9 +62,10 @@ export default function LoginAdmin() {
         return;
       }
 
-      const loginRes = await fetch('http://localhost:4000/login-admin', {
+      const loginRes = await fetch(`${API_BASE}/login-admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 

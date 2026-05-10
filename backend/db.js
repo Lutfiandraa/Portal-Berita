@@ -7,6 +7,7 @@ const pool = new Pool({
   database: process.env.PGDATABASE || 'portalberita',
   password: process.env.PGPASSWORD || 'andra500',
   port: parseInt(process.env.PGPORT || '5432', 10),
+  options: '-c timezone=UTC',
 });
 
 module.exports = pool;

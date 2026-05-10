@@ -3,11 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { FaTrashAlt } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 import AdminLayout from '../components/AdminLayout';
+import { API_BASE } from '../utils/api';
+import { useSearch } from '../utils/SearchContext';
 
 export default function ManageCritic() {
   const navigate = useNavigate();
   const [critics, setCritics] = useState([]);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const globalSearch = useSearch();
+
+  const filteredCritics = globalSearch
+    ? critics.filter(c =>
+        (c.email || '').toLowerCase().includes(globalSearch.toLowerCase()) ||
+        (c.message || '').toLowerCase().includes(globalSearch.toLowerCase())
+      )
+    : critics;
 
   useEffect(() => {
     const adminEmail = localStorage.getItem('adminEmail');
@@ -19,7 +29,7 @@ export default function ManageCritic() {
 
     const fetchCritics = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/critics');
+        const res = await fetch(`${API_BASE}/api/critics`, { credentials: 'include' });
         const data = await res.json();
 
         if (Array.isArray(data)) {
@@ -45,8 +55,9 @@ export default function ManageCritic() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:4000/api/critics/${id}`, {
+      const res = await fetch(`${API_BASE}/api/critics/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -75,7 +86,7 @@ export default function ManageCritic() {
             </tr>
           </thead>
           <tbody>
-            {critics.map((critic) => (
+            {filteredCritics.map((critic) => (
               <tr key={critic.id} className="border-t border-gray-100 text-sm hover:bg-gray-50">
                 <td className="p-4 text-gray-700">{critic.id}</td>
                 <td className="p-4 font-medium text-gray-800">{critic.email}</td>
@@ -103,7 +114,7 @@ export default function ManageCritic() {
                 </td>
               </tr>
             ))}
-            {critics.length === 0 && (
+            {filteredCritics.length === 0 && (
               <tr>
                 <td colSpan="5" className="text-center py-8 text-gray-500">
                   No feedback found.

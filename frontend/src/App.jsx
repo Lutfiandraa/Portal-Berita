@@ -15,6 +15,9 @@ import { Sun, Moon } from 'lucide-react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { ClipLoader } from 'react-spinners';
+import ProtectedRoute from './components/ProtectedRoute';
+import { clearAllStorage } from './utils/security';
+import { API_BASE } from './utils/api';
 
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
@@ -40,11 +43,12 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:4000/logout', {
+      await fetch(`${API_BASE}/logout`, {
         method: 'POST',
         credentials: 'include',
       });
     } catch (_) {}
+    clearAllStorage();              // bersihkan semua storage
     localStorage.removeItem('userEmail');
     window.location.href = '/login';
   };
@@ -148,8 +152,12 @@ function App() {
           <Route path="/" element={<NewsList />} />
           <Route path="/trending" element={<Trending />} />
           <Route path="/articles" element={<Article />} />
-          <Route path="/critics" element={<Critic />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/critics" element={
+            <ProtectedRoute><Critic /></ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute><Profile /></ProtectedRoute>
+          } />
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>

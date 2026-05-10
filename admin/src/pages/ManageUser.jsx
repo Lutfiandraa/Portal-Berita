@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiChevronDown } from 'react-icons/fi';
 import AdminLayout from '../components/AdminLayout';
+import { API_BASE } from '../utils/api';
+import { useSearch } from '../utils/SearchContext';
 
 export default function ManageUser() {
   const [users, setUsers] = useState([]);
@@ -11,6 +13,7 @@ export default function ManageUser() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const navigate = useNavigate();
+  const globalSearch = useSearch();
 
   useEffect(() => {
     const adminEmail = localStorage.getItem('adminEmail');
@@ -20,7 +23,7 @@ export default function ManageUser() {
       return;
     }
 
-    fetch('http://localhost:4000/api/users')
+    fetch(`${API_BASE}/api/users`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const formatted = data.map(user => ({
@@ -40,13 +43,14 @@ export default function ManageUser() {
   }, [navigate]);
 
   useEffect(() => {
-    const query = searchQuery.toLowerCase();
+    // Global search (header) takes priority; local search as fallback
+    const activeQuery = (globalSearch || searchQuery).toLowerCase();
     const filtered = users.filter(user =>
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
+      user.name.toLowerCase().includes(activeQuery) ||
+      user.email.toLowerCase().includes(activeQuery)
     );
     setFilteredUsers(filtered);
-  }, [searchQuery, users]);
+  }, [searchQuery, globalSearch, users]);
 
   const toggleDropdown = (id) => {
     setOpenDropdownId(openDropdownId === id ? null : id);
@@ -55,12 +59,13 @@ export default function ManageUser() {
   const handleStatusChange = async (id, newStatus) => {
     const endpoint =
       newStatus === 'Online'
-        ? `http://localhost:4000/api/users/${id}/activate`
-        : `http://localhost:4000/api/users/${id}/deactivate`;
+        ? `${API_BASE}/api/users/${id}/activate`
+        : `${API_BASE}/api/users/${id}/deactivate`;
 
     try {
       const res = await fetch(endpoint, {
         method: 'PATCH',
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error('Failed to update status');
@@ -80,8 +85,9 @@ export default function ManageUser() {
     if (!userToDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:4000/api/users/${userToDelete}/delete`, {
+      const res = await fetch(`${API_BASE}/api/users/${userToDelete}/delete`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error('Failed to delete user');

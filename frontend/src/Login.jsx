@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiRefreshCcw } from 'react-icons/fi';
 import { motion } from 'framer-motion'; // Import Framer Motion
+import { API_BASE } from './utils/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const Login = () => {
 
   const fetchCaptcha = async () => {
     try {
-      const res = await fetch('http://localhost:4000/captcha', {
+      const res = await fetch(`${API_BASE}/captcha`, {
         credentials: 'include',
       });
       const svg = await res.text();
@@ -41,7 +42,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const verify = await fetch('http://localhost:4000/verify-captcha', {
+      const verify = await fetch(`${API_BASE}/verify-captcha`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -56,7 +57,7 @@ const Login = () => {
       }
 
       // Login via backend agar session (cookie) terbentuk — wajib untuk bisa komentar
-      const res = await fetch('http://localhost:4000/login', {
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

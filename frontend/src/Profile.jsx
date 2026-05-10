@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { motion } from 'framer-motion'; // Import Framer Motion
+import { API_BASE } from './utils/api';
 
 const Profile = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ const Profile = () => {
       if (!email) return;
 
       // Cek status aktif/nonaktif
-      fetch(`http://localhost:4000/auth/status?email=${encodeURIComponent(email)}`, { credentials: 'include' })
+      fetch(`${API_BASE}/auth/status?email=${encodeURIComponent(email)}`, { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data.status === 'nonaktif') {
@@ -34,7 +35,7 @@ const Profile = () => {
         .catch((err) => console.error('❌ Error cek status:', err));
 
       // Ambil profil
-      fetch(`http://localhost:4000/profile?email=${encodeURIComponent(email)}`, { credentials: 'include' })
+      fetch(`${API_BASE}/profile?email=${encodeURIComponent(email)}`, { credentials: 'include' })
         .then((res) => res.json())
         .then((data) => {
           if (data && data.name && data.email) {
@@ -57,7 +58,7 @@ const Profile = () => {
     }
 
     // Kalau tidak ada localStorage, cek session (user sudah login)
-    fetch('http://localhost:4000/api/check-session', { credentials: 'include' })
+    fetch(`${API_BASE}/api/check-session`, { credentials: 'include' })
       .then((res) => res.json())
       .then((session) => {
         if (session.isLoggedIn && session.userEmail) {
@@ -79,7 +80,7 @@ const Profile = () => {
     console.log('Data sent to backend:', formData);
 
     try {
-      const response = await fetch('http://localhost:4000/profile', {
+      const response = await fetch(`${API_BASE}/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
